@@ -1,0 +1,948 @@
+/* ============================================================
+   CIDADE DO FRONT-END 2077 — style.css
+   Tema cyberpunk completo para o jogo educacional 3D
+   
+   Estrutura:
+   1. Reset & Base
+   2. Variáveis CSS (Design Tokens)
+   3. Tipografia
+   4. Canvas & Layout
+   5. Tela de Início
+   6. HUD (Heads-Up Display)
+   7. Prompt de Interação
+   8. Mini-mapa
+   9. Painel Holograma
+   10. Tela de Pausa
+   11. Animações (@keyframes)
+   12. Utilitários
+   ============================================================ */
+
+/* ============================================================
+   1. RESET & BASE
+   ============================================================ */
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Sem scroll — o jogo ocupa toda a tela */
+  background-color: #000510;
+  font-family: 'Orbitron', 'Courier New', monospace;
+  color: #c0d4ff;
+  cursor: crosshair; /* Cursor em forma de mira durante o jogo */
+}
+
+/* Remove outline padrão e substitui por estilo neon acessível */
+:focus-visible {
+  outline: 2px solid var(--neon-cyan);
+  outline-offset: 3px;
+}
+
+/* ============================================================
+   2. VARIÁVEIS CSS — Design Tokens Cyberpunk
+   ============================================================ */
+:root {
+  /* Cores neon principais */
+  --neon-cyan:    #00f5ff;
+  --neon-pink:    #ff00aa;
+  --neon-yellow:  #ffff00;
+  --neon-green:   #00ff88;
+  --neon-purple:  #cc00ff;
+  --neon-orange:  #ff6600;
+  --neon-blue:    #0066ff;
+
+  /* Fundos */
+  --bg-void:      #000510;
+  --bg-dark:      #000a1a;
+  --bg-panel:     rgba(0, 10, 30, 0.85);
+  --bg-glass:     rgba(0, 20, 50, 0.6);
+
+  /* Bordas */
+  --border-neon:  1px solid var(--neon-cyan);
+  --border-glow:  0 0 10px var(--neon-cyan), 0 0 20px rgba(0, 245, 255, 0.3);
+
+  /* Cor do holograma ativo (override via JS) */
+  --hologram-color: var(--neon-cyan);
+
+  /* Espaçamentos */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+
+  /* Tipografia */
+  --font-display: 'Orbitron', monospace;
+  --font-mono:    'Share Tech Mono', monospace;
+  --text-glow:    0 0 10px currentColor;
+
+  /* Transições */
+  --transition-fast:   0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow:   0.6s ease;
+
+  /* Z-index layers */
+  --z-canvas:   0;
+  --z-hud:     10;
+  --z-prompt:  20;
+  --z-panel:   30;
+  --z-start:   40;
+  --z-pause:   50;
+}
+
+/* ============================================================
+   3. TIPOGRAFIA
+   ============================================================ */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+code, pre {
+  font-family: var(--font-mono);
+}
+
+/* ============================================================
+   4. CANVAS & LAYOUT BASE
+   ============================================================ */
+#game-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: var(--z-canvas);
+}
+
+/* Classe utilitária — esconde elementos */
+.hidden {
+  display: none !important;
+}
+
+/* ============================================================
+   5. TELA DE INÍCIO
+   ============================================================ */
+#start-screen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-start);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(0, 30, 80, 0.95) 0%,
+    rgba(0, 5, 20, 0.98) 70%
+  );
+  animation: fadeIn 1s ease;
+}
+
+/* Efeito de scan lines sobre a tela de início */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 245, 255, 0.03) 2px,
+    rgba(0, 245, 255, 0.03) 4px
+  );
+  pointer-events: none;
+  animation: scanMove 8s linear infinite;
+}
+
+.start-content {
+  text-align: center;
+  padding: var(--space-xl);
+  max-width: 700px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Logo principal */
+.start-logo {
+  margin-bottom: var(--space-xl);
+}
+
+.logo-city {
+  font-size: clamp(14px, 3vw, 22px);
+  font-weight: 500;
+  color: var(--neon-cyan);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: var(--space-xs);
+  animation: fadeInDown 0.8s ease 0.2s both;
+}
+
+.logo-main {
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue), var(--neon-pink));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 20px rgba(0, 245, 255, 0.5));
+  line-height: 1.1;
+  animation: fadeInDown 0.8s ease 0.4s both;
+}
+
+.logo-tagline {
+  font-size: clamp(10px, 1.5vw, 14px);
+  letter-spacing: 0.4em;
+  color: var(--neon-pink);
+  margin-top: var(--space-sm);
+  animation: fadeInDown 0.8s ease 0.6s both;
+}
+
+/* Divisor neon animado */
+.neon-divider {
+  height: 2px;
+  width: 60%;
+  margin: var(--space-lg) auto;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), transparent);
+  box-shadow: 0 0 8px var(--neon-cyan);
+  animation: fadeIn 0.8s ease 0.8s both;
+}
+
+/* Descrição */
+.start-desc {
+  font-size: clamp(12px, 2vw, 15px);
+  line-height: 1.8;
+  color: #8ab4d4;
+  margin-bottom: var(--space-xl);
+  letter-spacing: 0.05em;
+  animation: fadeIn 0.8s ease 1s both;
+}
+
+.start-desc strong {
+  color: var(--neon-cyan);
+  font-family: var(--font-mono);
+}
+
+/* Botão de início */
+#start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 16px 48px;
+  background: transparent;
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal);
+  box-shadow: 0 0 15px rgba(0, 245, 255, 0.3), inset 0 0 15px rgba(0, 245, 255, 0.05);
+  animation: fadeInUp 0.8s ease 1.2s both;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+#start-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform var(--transition-normal);
+}
+
+#start-btn:hover::before { transform: translateX(0); }
+#start-btn:hover {
+  background: rgba(0, 245, 255, 0.1);
+  box-shadow: 0 0 30px rgba(0, 245, 255, 0.5), inset 0 0 20px rgba(0, 245, 255, 0.1);
+  transform: translateY(-2px);
+  color: #fff;
+}
+
+#start-btn:active { transform: translateY(0); }
+
+.btn-icon { font-size: 18px; }
+
+/* Controles */
+.start-controls {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+  margin-top: var(--space-xl);
+  animation: fadeIn 0.8s ease 1.4s both;
+}
+
+.control-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.ctrl-key {
+  display: block;
+  padding: 6px 12px;
+  background: rgba(0, 100, 200, 0.15);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--neon-cyan);
+  letter-spacing: 0.1em;
+  min-width: 48px;
+  text-align: center;
+}
+
+.ctrl-desc {
+  font-size: 10px;
+  color: #6080a0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   6. HUD — HEADS-UP DISPLAY
+   ============================================================ */
+#hud {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-hud);
+  pointer-events: none; /* HUD não bloqueia cliques na cena */
+}
+
+/* Mira central */
+#crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(0, 245, 255, 0.7);
+  font-size: 24px;
+  font-weight: 100;
+  line-height: 1;
+  text-shadow: 0 0 10px var(--neon-cyan);
+  pointer-events: none;
+  user-select: none;
+  letter-spacing: 0;
+}
+
+/* Nome da área atual — topo centro */
+#hud-location {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--neon-cyan);
+  text-shadow: var(--text-glow);
+  background: rgba(0, 5, 20, 0.5);
+  padding: 6px 20px;
+  border: 1px solid rgba(0, 245, 255, 0.2);
+  clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  white-space: nowrap;
+}
+
+/* Coordenadas — canto inferior esquerdo */
+#hud-coords {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  gap: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgba(0, 245, 255, 0.5);
+  background: rgba(0, 5, 20, 0.5);
+  padding: 6px 12px;
+  border: 1px solid rgba(0, 245, 255, 0.15);
+}
+
+/* FPS counter — canto superior esquerdo */
+#hud-fps {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgba(0, 245, 255, 0.4);
+  background: rgba(0, 5, 20, 0.4);
+  padding: 4px 8px;
+  border: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+/* Dica inferior */
+#hud-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11px;
+  color: rgba(130, 180, 255, 0.5);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  animation: pulse 3s ease infinite;
+}
+
+/* ============================================================
+   7. PROMPT DE INTERAÇÃO
+   ============================================================ */
+#interaction-prompt {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: var(--z-prompt);
+  pointer-events: none;
+  animation: slideUp 0.3s ease;
+}
+
+.prompt-inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  background: rgba(0, 10, 30, 0.8);
+  border: 1px solid var(--neon-cyan);
+  padding: 12px 24px;
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.2), inset 0 0 10px rgba(0, 245, 255, 0.05);
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.prompt-key {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  animation: keyPulse 1.5s ease infinite;
+}
+
+.prompt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.prompt-action {
+  font-size: 12px;
+  color: #c0d4ff;
+  letter-spacing: 0.1em;
+}
+
+.prompt-building {
+  font-size: 14px;
+  color: var(--neon-cyan);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-shadow: var(--text-glow);
+}
+
+/* ============================================================
+   8. MINI-MAPA
+   ============================================================ */
+#minimap-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 160px;
+  background: rgba(0, 5, 20, 0.85);
+  border: 1px solid rgba(0, 100, 200, 0.4);
+  box-shadow: 0 0 15px rgba(0, 100, 200, 0.2);
+  padding: 4px;
+}
+
+.minimap-label {
+  font-size: 8px;
+  letter-spacing: 0.3em;
+  color: rgba(0, 245, 255, 0.5);
+  text-align: center;
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(0, 100, 200, 0.3);
+  margin-bottom: 3px;
+}
+
+#minimap {
+  display: block;
+  width: 152px;
+  height: 152px;
+}
+
+/* ============================================================
+   9. PAINEL HOLOGRAMA
+   ============================================================ */
+#hologram-panel {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-panel);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  /* Cursor normal no painel */
+  cursor: default;
+}
+
+/* Backdrop semi-transparente */
+.hologram-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 5, 20, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* Painel interno */
+.hologram-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0, 8, 25, 0.95);
+  border: 1px solid var(--hologram-color, var(--neon-cyan));
+  box-shadow:
+    0 0 30px rgba(0, 245, 255, 0.15),
+    0 0 60px rgba(0, 245, 255, 0.05),
+    inset 0 0 30px rgba(0, 245, 255, 0.03);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+  animation: hologramOpen 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Efeito de scan no painel */
+.hologram-inner::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 3px,
+    rgba(0, 245, 255, 0.02) 3px,
+    rgba(0, 245, 255, 0.02) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Header do holograma */
+.hologram-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+  position: relative;
+  z-index: 1;
+  flex-shrink: 0;
+}
+
+.hologram-icon-wrap {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--hologram-color, var(--neon-cyan));
+  color: var(--hologram-color, var(--neon-cyan));
+  font-size: 24px;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--hologram-color, var(--neon-cyan));
+  animation: iconPulse 2s ease infinite;
+}
+
+.hologram-titles {
+  flex: 1;
+}
+
+.hologram-titles h2 {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 900;
+  color: var(--hologram-color, var(--neon-cyan));
+  text-shadow: 0 0 15px var(--hologram-color, var(--neon-cyan));
+  letter-spacing: 0.15em;
+  line-height: 1.2;
+}
+
+.hologram-titles p {
+  font-size: 12px;
+  color: #6080a0;
+  letter-spacing: 0.2em;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+}
+
+.hologram-close {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid rgba(255, 0, 100, 0.4);
+  color: rgba(255, 0, 100, 0.7);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.hologram-close:hover {
+  background: rgba(255, 0, 100, 0.1);
+  border-color: #ff0066;
+  color: #ff0066;
+  box-shadow: 0 0 10px rgba(255, 0, 100, 0.4);
+}
+
+/* Divisor */
+.hologram-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--hologram-color, var(--neon-cyan)), transparent);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* Conteúdo rolável */
+.hologram-content {
+  overflow-y: auto;
+  padding: var(--space-lg) var(--space-xl);
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: var(--space-md);
+  align-content: start;
+  scrollbar-width: thin;
+  scrollbar-color: var(--hologram-color, var(--neon-cyan)) rgba(0, 20, 50, 0.5);
+}
+
+.hologram-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.hologram-content::-webkit-scrollbar-track {
+  background: rgba(0, 20, 50, 0.5);
+}
+
+.hologram-content::-webkit-scrollbar-thumb {
+  background: var(--hologram-color, var(--neon-cyan));
+}
+
+/* Seção pedagógica */
+.holo-section {
+  background: rgba(0, 20, 50, 0.5);
+  border: 1px solid rgba(0, 245, 255, 0.1);
+  border-left: 3px solid var(--hologram-color, var(--neon-cyan));
+  padding: var(--space-md);
+  animation: sectionSlideIn 0.4s ease both;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.holo-section:hover {
+  background: rgba(0, 30, 70, 0.6);
+  border-left-color: var(--hologram-color, var(--neon-cyan));
+  box-shadow: inset 3px 0 10px rgba(0, 245, 255, 0.1);
+}
+
+.holo-section-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.holo-tag {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--hologram-color, var(--neon-cyan));
+  text-shadow: 0 0 8px var(--hologram-color, var(--neon-cyan));
+  white-space: nowrap;
+}
+
+.holo-label {
+  font-size: 11px;
+  color: #8090b0;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.holo-desc {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #a0b8d8;
+  margin-bottom: var(--space-sm);
+}
+
+/* Bloco de código dentro do holograma */
+.holo-code {
+  background: rgba(0, 0, 10, 0.8);
+  border: 1px solid rgba(0, 245, 255, 0.15);
+  overflow: hidden;
+}
+
+.holo-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(0, 50, 100, 0.3);
+  border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+}
+
+.holo-code-header span {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: #5070a0;
+  letter-spacing: 0.1em;
+}
+
+.holo-code-lang {
+  color: var(--hologram-color, var(--neon-cyan)) !important;
+  opacity: 0.7;
+}
+
+.holo-code pre {
+  padding: var(--space-sm) var(--space-md);
+  overflow-x: auto;
+}
+
+.holo-code code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #7dd3fc;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+/* Rodapé do holograma */
+.hologram-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-xl);
+  border-top: 1px solid rgba(0, 245, 255, 0.1);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.holo-footer-brand {
+  font-size: 10px;
+  color: rgba(0, 245, 255, 0.3);
+  letter-spacing: 0.2em;
+}
+
+.holo-footer-progress {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--hologram-color, var(--neon-cyan));
+  opacity: 0.6;
+  letter-spacing: 0.15em;
+}
+
+/* ============================================================
+   10. TELA DE PAUSA
+   ============================================================ */
+#pause-screen {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-pause);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 5, 20, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.pause-content {
+  text-align: center;
+  padding: var(--space-xl);
+  background: rgba(0, 10, 30, 0.9);
+  border: 1px solid rgba(0, 245, 255, 0.3);
+  min-width: 320px;
+  clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.pause-icon {
+  font-size: 48px;
+  margin-bottom: var(--space-md);
+  display: block;
+}
+
+.pause-title {
+  font-size: 28px;
+  color: var(--neon-cyan);
+  text-shadow: var(--text-glow);
+  margin-bottom: var(--space-sm);
+}
+
+.pause-hint {
+  font-size: 12px;
+  color: #6080a0;
+  margin-bottom: var(--space-lg);
+  letter-spacing: 0.1em;
+}
+
+#resume-btn {
+  padding: 12px 40px;
+  background: transparent;
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+#resume-btn:hover {
+  background: rgba(0, 245, 255, 0.1);
+  box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+}
+
+/* ============================================================
+   11. ANIMAÇÕES (@keyframes)
+   ============================================================ */
+
+/* Entrada geral */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Scan lines se movendo */
+@keyframes scanMove {
+  from { background-position-y: 0; }
+  to   { background-position-y: 100%; }
+}
+
+/* Slide do prompt de interação */
+@keyframes slideUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Pulsação genérica */
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+
+/* Pulsação da tecla E */
+@keyframes keyPulse {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--neon-cyan);
+    border-color: var(--neon-cyan);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--neon-cyan), 0 0 40px rgba(0, 245, 255, 0.3);
+    border-color: #fff;
+  }
+}
+
+/* Abertura do holograma */
+@keyframes hologramOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Pulsação do ícone do holograma */
+@keyframes iconPulse {
+  0%, 100% { box-shadow: 0 0 10px var(--hologram-color, var(--neon-cyan)); }
+  50%       { box-shadow: 0 0 25px var(--hologram-color, var(--neon-cyan)), 0 0 50px rgba(0, 245, 255, 0.2); }
+}
+
+/* Slide das seções pedagógicas */
+@keyframes sectionSlideIn {
+  from { opacity: 0; transform: translateX(-10px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Fechamento do holograma */
+@keyframes hologramClose {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+}
+
+/* ============================================================
+   12. RESPONSIVIDADE
+   ============================================================ */
+@media (max-width: 768px) {
+  .hologram-inner {
+    max-height: 95vh;
+  }
+
+  .hologram-header {
+    padding: var(--space-md);
+  }
+
+  .hologram-content {
+    padding: var(--space-md);
+    grid-template-columns: 1fr;
+  }
+
+  .hologram-footer {
+    padding: var(--space-sm) var(--space-md);
+  }
+
+  #minimap-container {
+    width: 120px;
+  }
+
+  #minimap {
+    width: 112px;
+    height: 112px;
+  }
+}

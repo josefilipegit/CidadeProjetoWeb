@@ -1,0 +1,18 @@
+  /* --- STORAGE STATION --- */
+  function createStorageStation() {
+    var x = -40, z = -90, w = 12, h = 60, d = 12;
+    var mat = stdMat(0x001833, 0x002266);
+
+    // Corpo principal
+    var bodyGeo = new THREE.BoxGeometry(w, h, d);
+    var body = new THREE.Mesh(bodyGeo, mat);
+    body.position.set(x, h/2, z);
+    body.castShadow = true;
+    scene.add(body);
+    var frame = neonEdges(bodyGeo, 0x0055ff);
+    frame.position.copy(body.position);
+    scene.add(frame);
+
+    // Animacao (referencia global)
+       buildings[buildings.length-1].anim = { rings: animRings, basePt: basePt };
+  }
