@@ -222,6 +222,36 @@ function _createMainGridLines() {
 }
 
 // ============================================================
+// UnderGround
+// ============================================================
+
+function _createUnderGround() {
+  // Plano principal — 400×400 unidades
+  const geo = new THREE.PlaneGeometry(400, 400);
+  const mat = new THREE.MeshStandardMaterial({
+    color:             0x030318,
+    emissive:          0x000510,
+    emissiveIntensity: 0.5,
+    roughness:         0.9,
+    metalness:         0.1,
+  });
+
+  const underGround = new THREE.Mesh(geo, mat);
+  underGround.rotation.x = -Math.PI / 2; // Deita o plano (eixo X)
+  underGround.receiveShadow = true;
+  scene.add(underGround); //essa linha que adiciona ele de fato à cena
+
+  // Grade fina (suave)
+  const gridFine = new THREE.GridHelper(400, 100, 0x001030, 0x000820);
+  gridFine.position.y = 0.01;
+  scene.add(gridFine);
+
+  const geo = new THREE.BufferGeometry().setFromPoints(points);
+  const lines = new THREE.LineSegments(geo, mat);
+  scene.add(lines);
+}
+
+// ============================================================
 // CÉU
 // ============================================================
 
@@ -230,6 +260,7 @@ function _createMainGridLines() {
  *  - Esfera grande (invertida) como skybox
  *  - Campo de estrelas estático
  */
+
 function _createSky() {
   // Esfera grande — renderiza o interior (BackSide)
   const skyGeo = new THREE.SphereGeometry(290, 32, 16);
