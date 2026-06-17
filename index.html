@@ -873,7 +873,7 @@
 
     // ——— CONFIGURACAO ——————————————————————————————
     var SENS = 0.002;   // Sensibilidade do mouse
-    var SPD = 10;      // Velocidade de movimento
+    var SPD = 20;      // Velocidade de movimento
     var P_HEIGHT = 1.7;     // Altura dos olhos
     var BOUNDS = 180;     // Limite da cidade
     var I_DIST = 20;      // Distancia de interacao
@@ -961,7 +961,36 @@
         color: '#00ff88',
         icon: '{  }',
         sections: [
-
+          {
+          tag: 'Counting Clicks with sessionStorage',
+          lbl: 'Contagem de cliques com armazenamento local',
+          desc: 'O exemplo a seguir conta quantas vezes um usuário clicou em um botão. Neste código, a string de valor é convertida em um número para que o contador possa ser incrementado:',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
+          {
+          tag: 'window.localStorage',
+          lbl: 'Armazenamento Local',
+          desc: 'Armazena dados sem data de expiracao. Os dados permanecem salvos mesmo apos fechar a aba ou o navegador, e ficam disponiveis no dia seguinte, semana ou ano depois.',
+          ex: '// Salvar\nlocalStorage.setItem("lastname", "Smith");\nlocalStorage.setItem("bgcolor", "yellow");\n\n// Recuperar\nconst nome = localStorage.getItem("lastname");\n\n// Remover\nlocalStorage.removeItem("lastname");'
+          },
+          {
+          tag: 'window.sessionStorage',
+          lbl: 'Armazenamento de Sessao',
+          desc: 'Funciona igual ao localStorage, mas armazena os dados apenas durante a sessao atual. Os dados sao apagados quando o usuario fecha a aba especifica do navegador.',
+          ex: 'function clickCounter() {\n  if (sessionStorage.clickcount) {\n    sessionStorage.clickcount =\n      Number(sessionStorage.clickcount) + 1;\n  } else {\n    sessionStorage.clickcount = 1;\n  }\n}'
+          },
+          {
+          tag: 'typeof(Storage)',
+          lbl: 'Verificacao de Suporte',
+          desc: 'Testa se o navegador suporta a Web Storage API antes de usa-la. Evita erros em navegadores muito antigos que nao implementam o recurso.',
+          ex: 'if (typeof(Storage) !== "undefined") {\n  // navegador suporta\n  // Web Storage\n} else {\n  // sem suporte\n}'
+          },
+          {
+          tag: 'setItem() / getItem()',
+          lbl: 'Salvar e Ler Pares',
+          desc: 'Metodos centrais da API: setItem() cria um par chave/valor, e getItem() recupera o valor pela chave. Funcionam de forma idêntica em localStorage e sessionStorage.',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
         ]
       },
 
@@ -1321,6 +1350,17 @@
       grid.position.y = 0.01;
       scene.add(grid);
 
+      // UNDERGROUND
+      var ugGeo = new THREE.PlaneGeometry(100, 100,);
+      var ugMat = new THREE.MeshStandardMaterial({ color: 0x5efb00, emissive: 0x5efb00, emissiveIntensity: 0.5, roughness: 0.9 });
+      var UnderGround = new THREE.Mesh(ugGeo, ugMat);
+      UnderGround.position.set(-40, -30.01, 105);
+      scene.add(UnderGround);
+      
+      UnderGround.rotation.x = -Math.PI / 2;
+      UnderGround.receiveShadow = true;
+      UnderGround.position.y= -30;
+
       // Linhas de rua principais
       var lineMat = new THREE.LineBasicMaterial({ color: 0x001a40 });
       var pts = [];
@@ -1608,6 +1648,8 @@
   function createStorageStation() {
     var x = -40, z = 90, w = 25, h = 50, d = 25;
     var mat = stdMat(0x001833, 0x002266);
+
+
 
     // Corpo principal
     var bodyGeo = new THREE.BoxGeometry(w, h, d);
