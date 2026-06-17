@@ -991,6 +991,12 @@
           desc: 'Metodos centrais da API: setItem() cria um par chave/valor, e getItem() recupera o valor pela chave. Funcionam de forma idêntica em localStorage e sessionStorage.',
           ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
           },
+          {
+      tag: 'Boas Práticas',
+      lbl: 'Segurança e Utilização',
+      desc: 'A Web Storage API não deve ser utilizada para armazenar informações sensíveis, como senhas, tokens de autenticação ou dados bancários. Seu uso é recomendado para preferências do usuário, configurações da interface e dados temporários.',
+      ex: '// Recomendado\nlocalStorage.setItem("tema", "escuro");\n\n// Não recomendado\n// localStorage.setItem("senha", "123456");'
+          },
         ]
       },
 
