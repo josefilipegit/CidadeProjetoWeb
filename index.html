@@ -1,0 +1,2952 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CIDADE CENTRO UNIVERSITÃRIO PROJEÃÃO FRONT-END 2077 | Jogo Educacional 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000510;
+      font-family: 'Orbitron', monospace;
+      color: #c0d4ff;
+      cursor: crosshair;
+    }
+
+    :root {
+      --cyan: #00f5ff;
+      --pink: #ff00aa;
+      --green: #00ff88;
+      --yellow: #ffff00;
+      --purple: #cc00ff;
+      --hcol: #00f5ff;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* CANVAS */
+    #game-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* START SCREEN */
+    #start-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(ellipse at center, rgba(0, 20, 60, .97) 0%, rgba(0, 5, 20, .99) 70%);
+    }
+
+    .scanlines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 245, 255, .02) 2px, rgba(0, 245, 255, .02) 4px);
+    }
+
+    .start-content {
+      text-align: center;
+      padding: 40px;
+      max-width: 680px;
+      width: 100%;
+      position: relative;
+      z-index: 1;
+    }
+
+    .logo-city {
+      font-size: clamp(10px, 1.5vw, 16px);
+      color: var(--cyan);
+      letter-spacing: .2em;
+      opacity: .8;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .logo-main {
+      font-size: clamp(36px, 8vw, 72px);
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--cyan), #0066ff, var(--pink));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 20px rgba(0, 245, 255, .5));
+      line-height: 1.1;
+    }
+
+    .logo-tag {
+      font-size: clamp(10px, 1.3vw, 13px);
+      letter-spacing: .4em;
+      color: var(--pink);
+      margin-top: 6px;
+    }
+
+    .neon-div {
+      height: 2px;
+      width: 60%;
+      margin: 24px auto;
+      background: linear-gradient(90deg, transparent, var(--cyan), var(--pink), transparent);
+      box-shadow: 0 0 8px var(--cyan);
+    }
+
+    .start-desc {
+      font-size: clamp(12px, 1.8vw, 14px);
+      color: #8ab4d4;
+      line-height: 1.8;
+      margin-bottom: 36px;
+    }
+
+    .start-desc strong {
+      color: var(--cyan);
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    #start-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 48px;
+      background: transparent;
+      border: 2px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(0, 245, 255, .3);
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+      transition: all .25s;
+    }
+
+    #start-btn:hover {
+      background: rgba(0, 245, 255, .1);
+      box-shadow: 0 0 30px rgba(0, 245, 255, .5);
+      color: #fff;
+      transform: translateY(-2px);
+    }
+
+    .ctrl-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+
+    .ctrl {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .ctrl-k {
+      padding: 5px 12px;
+      border: 1px solid rgba(0, 245, 255, .3);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: var(--cyan);
+    }
+
+    .ctrl-d {
+      font-size: 10px;
+      color: #5070a0;
+      letter-spacing: .1em;
+    }
+
+    /* HUD */
+    #hud {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    #crosshair {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(0, 245, 255, .7);
+      font-size: 22px;
+      line-height: 1;
+      text-shadow: 0 0 10px var(--cyan);
+      user-select: none;
+    }
+
+    #hud-loc {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .4em;
+      color: var(--cyan);
+      text-shadow: 0 0 10px var(--cyan);
+      background: rgba(0, 5, 20, .5);
+      padding: 6px 20px;
+      border: 1px solid rgba(0, 245, 255, .2);
+      clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+      white-space: nowrap;
+    }
+
+    #hud-coords {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 16px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: rgba(0, 245, 255, .5);
+      background: rgba(0, 5, 20, .5);
+      padding: 6px 12px;
+      border: 1px solid rgba(0, 245, 255, .15);
+    }
+
+    #hud-fps {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: rgba(0, 245, 255, .4);
+      background: rgba(0, 5, 20, .4);
+      padding: 4px 8px;
+      border: 1px solid rgba(0, 245, 255, .1);
+    }
+
+    #hud-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: rgba(130, 180, 255, .5);
+      white-space: nowrap;
+      animation: blink 3s ease infinite;
+    }
+
+    /* PROMPT */
+    #prompt {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: slideUp .3s ease;
+    }
+
+    .p-inner {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(0, 10, 30, .85);
+      border: 1px solid var(--cyan);
+      padding: 12px 24px;
+      box-shadow: 0 0 20px rgba(0, 245, 255, .2);
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .p-key {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 14px;
+      font-weight: 700;
+      animation: keyPulse 1.5s ease infinite;
+    }
+
+    .p-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .p-act {
+      font-size: 11px;
+      color: #c0d4ff;
+      letter-spacing: .1em;
+    }
+
+    .p-name {
+      font-size: 13px;
+      color: var(--cyan);
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-shadow: 0 0 10px var(--cyan);
+    }
+
+    /* MINIMAP */
+    #minimap-wrap {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      width: 160px;
+      background: rgba(0, 5, 20, .9);
+      border: 1px solid rgba(0, 100, 200, .4);
+      box-shadow: 0 0 15px rgba(0, 100, 200, .2);
+      padding: 4px;
+    }
+
+    .map-lbl {
+      font-size: 8px;
+      letter-spacing: .3em;
+      color: rgba(0, 245, 255, .5);
+      text-align: center;
+      padding: 3px 0;
+      border-bottom: 1px solid rgba(0, 100, 200, .3);
+      margin-bottom: 3px;
+    }
+
+    #minimap {
+      display: block;
+      width: 152px;
+      height: 152px;
+    }
+
+    /* HOLOGRAM */
+    #hologram {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      cursor: default;
+    }
+
+    .h-back {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 5, 20, .78);
+      backdrop-filter: blur(5px);
+    }
+
+    .h-box {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      max-width: none;
+      max-height: none;
+      display: flex;
+      flex-direction: column;
+      background: rgba(0, 8, 25, .97);
+      border-top: 2px solid var(--hcol);
+      border-bottom: 2px solid var(--hcol);
+      box-shadow: inset 0 0 50px rgba(0, 245, 255, .05);
+      animation: hOpen .35s cubic-bezier(.175, .885, .32, 1.275);
+    }
+
+    .h-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 245, 255, .015) 3px, rgba(0, 245, 255, .015) 4px);
+      pointer-events: none;
+    }
+
+    .h-head {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 32px;
+      border-bottom: 1px solid rgba(0, 245, 255, .1);
+      flex-shrink: 0;
+    }
+
+    .h-ico {
+      width: 56px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--hcol);
+      color: var(--hcol);
+      font-size: 22px;
+      flex-shrink: 0;
+      box-shadow: 0 0 15px var(--hcol);
+      animation: iconPulse 2s ease infinite;
+    }
+
+    .h-titles {
+      flex: 1;
+    }
+
+    .h-titles h2 {
+      font-size: clamp(16px, 2.5vw, 24px);
+      font-weight: 900;
+      color: var(--hcol);
+      text-shadow: 0 0 15px var(--hcol);
+      letter-spacing: .12em;
+    }
+
+    .h-titles p {
+      font-size: 11px;
+      color: #5070a0;
+      letter-spacing: .2em;
+      margin-top: 4px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .h-x {
+      width: 36px;
+      height: 36px;
+      background: transparent;
+      border: 1px solid rgba(255, 0, 100, .4);
+      color: rgba(255, 0, 100, .7);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      flex-shrink: 0;
+      pointer-events: all;
+    }
+
+    .h-x:hover {
+      background: rgba(255, 0, 100, .1);
+      border-color: #ff0066;
+      color: #ff0066;
+      box-shadow: 0 0 10px rgba(255, 0, 100, .4);
+    }
+
+    .h-div {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--hcol), transparent);
+      opacity: .4;
+      flex-shrink: 0;
+    }
+
+    .h-body {
+      overflow-y: auto;
+      padding: 20px 32px;
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 14px;
+      align-content: start;
+      scrollbar-width: thin;
+      scrollbar-color: var(--hcol) rgba(0, 20, 50, .5);
+    }
+
+    .h-sec {
+      background: rgba(0, 20, 50, .5);
+      border: 1px solid rgba(0, 245, 255, .08);
+      border-left: 3px solid var(--hcol);
+      padding: 14px;
+      animation: secIn .35s ease both;
+    }
+
+    .h-sec:hover {
+      background: rgba(0, 30, 70, .6);
+    }
+
+    .h-sh {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .h-tag {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      color: var(--hcol);
+      text-shadow: 0 0 8px var(--hcol);
+    }
+
+    .h-lbl {
+      font-size: 10px;
+      color: #7090b0;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .h-desc {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #90b0d0;
+      margin-bottom: 8px;
+    }
+
+    .h-code {
+      background: rgba(0, 0, 10, .8);
+      border: 1px solid rgba(0, 245, 255, .12);
+      overflow: hidden;
+    }
+
+    .h-chd {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 10px;
+      background: rgba(0, 50, 100, .25);
+      border-bottom: 1px solid rgba(0, 245, 255, .08);
+    }
+
+    .h-chd span {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: #4060a0;
+    }
+
+    .h-chd .lang {
+      color: var(--hcol);
+      opacity: .7;
+    }
+
+    .h-code pre {
+      padding: 8px 12px;
+      overflow-x: auto;
+    }
+
+    .h-code code {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10.5px;
+      color: #7dd3fc;
+      line-height: 1.6;
+      white-space: pre;
+    }
+
+    .h-foot {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 32px;
+      border-top: 1px solid rgba(0, 245, 255, .08);
+      flex-shrink: 0;
+    }
+
+    .h-fbrand {
+      font-size: 9px;
+      color: rgba(0, 245, 255, .3);
+      letter-spacing: .2em;
+    }
+
+    .h-fprog {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: var(--hcol);
+      opacity: .6;
+      letter-spacing: .15em;
+    }
+
+    /* PAUSE */
+    #pause-scr {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 5, 20, .78);
+      backdrop-filter: blur(8px);
+    }
+
+    .p-box {
+      text-align: center;
+      padding: 48px;
+      background: rgba(0, 10, 30, .95);
+      border: 1px solid rgba(0, 245, 255, .3);
+      min-width: 320px;
+      clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    }
+
+    .p-ico {
+      font-size: 48px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .p-ttl {
+      font-size: 28px;
+      color: var(--cyan);
+      text-shadow: 0 0 15px var(--cyan);
+      margin-bottom: 8px;
+    }
+
+    .p-hint {
+      font-size: 11px;
+      color: #5070a0;
+      margin-bottom: 24px;
+      letter-spacing: .1em;
+    }
+
+    #resume-btn {
+      padding: 12px 40px;
+      background: transparent;
+      border: 2px solid var(--cyan);
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      cursor: pointer;
+      transition: all .25s;
+    }
+
+    #resume-btn:hover {
+      background: rgba(0, 245, 255, .1);
+      box-shadow: 0 0 20px rgba(0, 245, 255, .3);
+    }
+
+    /* KEYFRAMES */
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: .4
+      }
+
+      50% {
+        opacity: .9
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translate(-50%, 20px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, 0)
+      }
+    }
+
+    @keyframes keyPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px var(--cyan)
+      }
+
+      50% {
+        box-shadow: 0 0 20px var(--cyan), 0 0 40px rgba(0, 245, 255, .3);
+        border-color: #fff
+      }
+    }
+
+    @keyframes hOpen {
+      from {
+        opacity: 0;
+        transform: scale(.93) translateY(8px)
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0)
+      }
+    }
+
+    @keyframes iconPulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 10px var(--hcol)
+      }
+
+      50% {
+        box-shadow: 0 0 25px var(--hcol), 0 0 50px rgba(0, 245, 255, .15)
+      }
+    }
+
+    @keyframes secIn {
+      from {
+        opacity: 0;
+        transform: translateX(-10px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(0)
+      }
+    }
+
+    /* MISSIONS */
+    #hud-mission {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 13px;
+      font-weight: 700;
+      color: #ff00aa;
+      text-shadow: 0 0 10px #ff00aa;
+      background: rgba(0, 5, 20, .6);
+      padding: 8px 24px;
+      border: 1px solid rgba(255, 0, 170, .4);
+      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    }
+
+    #mission-alert {
+      position: absolute;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 40px;
+      font-weight: 900;
+      color: #00ff88;
+      text-shadow: 0 0 30px #00ff88;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    @keyframes alertPulse {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+
+      20% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+
+      30% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+
+      80% {
+        opacity: 1;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @media(max-width:768px) {
+
+      .h-head,
+      .h-body,
+      .h-foot {
+        padding-left: 14px;
+        padding-right: 14px
+      }
+
+      .h-body {
+        grid-template-columns: 1fr
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="game-canvas"></canvas>
+
+  <!-- TELA DE INICIO -->
+  <div id="start-screen">
+    <div class="scanlines"></div>
+    <div class="start-content">
+      <div class="logo-city">CIDADE CENTRO UNIVERSITÃRIO PROJEÃÃO</div>
+      <div class="logo-main">FRONT-END 2077</div>
+      <div class="logo-tag">JOGO EDUCACIONAL 3D</div>
+      <div class="neon-div"></div>
+      <p class="start-desc">Explore uma cidade futurista e aprenda<br>
+        <strong>HTML &middot; CSS &middot; JavaScript &middot; Bootstrap &middot; Acessibilidade</strong>
+      </p>
+      <button id="start-btn" onclick="startGame()">&#9654; INICIAR EXPLO&Ccedil;&Atilde;O</button>
+      <div class="ctrl-row">
+        <div class="ctrl"><span class="ctrl-k">W A S D</span><span class="ctrl-d">Mover</span></div>
+        <div class="ctrl"><span class="ctrl-k">MOUSE</span><span class="ctrl-d">Olhar</span></div>
+        <div class="ctrl"><span class="ctrl-k">E</span><span class="ctrl-d">Interagir</span></div>
+        <div class="ctrl"><span class="ctrl-k">ESC</span><span class="ctrl-d">Pausar</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="crosshair">+</div>
+    <div id="prompt" class="hidden">
+      <div class="p-inner">
+        <span class="p-key">E</span>
+        <div class="p-info">
+          <span class="p-act">Pressione E para interagir</span>
+          <span class="p-name" id="p-bname"></span>
+        </div>
+      </div>
+    </div>
+    <div id="hud-loc">PRA&Ccedil;A CENTRAL</div>
+    <div id="hud-coords"><span>X: <span id="cx">0</span></span><span>Z: <span id="cz">0</span></span></div>
+    <div id="hud-fps">FPS: <span id="fps">60</span></div>
+    <div id="hud-mission">Missão 1: Visite a HTML TOWER</div>
+    <div id="minimap-wrap">
+      <div class="map-lbl">MAPA</div>
+      <canvas id="minimap" width="152" height="152"></canvas>
+    </div>
+    <div id="hud-hint">&#128161; Explore os prédios para aprender!</div>
+  </div>
+  <div id="mission-alert" class="hidden">MISSÃO CONCLUÍDA!</div>
+
+  <!-- HOLOGRAM -->
+  <div id="hologram" class="hidden">
+    <div class="h-back"></div>
+    <div class="h-box">
+      <div class="h-head">
+        <div class="h-ico" id="h-ico">&#11041;</div>
+        <div class="h-titles">
+          <h2 id="h-title">HTML TOWER</h2>
+          <p id="h-sub">Estrutura da Web</p>
+        </div>
+        <button class="h-x" onclick="closeHologram()">&#10005;</button>
+      </div>
+      <div class="h-div"></div>
+      <div class="h-body" id="h-content"></div>
+      <div class="h-foot">
+        <span class="h-fbrand">&#11041; C. UNIVERSITÁRIO PROJEÇÃO - FRONT-END 2077</span>
+        <span class="h-fprog" id="h-prog">0 TÓPICOS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAUSE -->
+  <div id="pause-scr" class="hidden">
+    <div class="p-box">
+      <span class="p-ico">&#9208;</span>
+      <h2 class="p-ttl">PAUSADO</h2>
+      <p class="p-hint">Clique na tela para continuar</p>
+      <button id="resume-btn" onclick="resumeGame()">&#9654; CONTINUAR</button>
+    </div>
+  </div>
+
+  <!-- Three.js — carregado localmente -->
+  <script src="three.min.js"></script>
+
+  <!-- Novos Módulos Fase 2 -->
+<script src="citizens.js"></script>
+<script src="drones.js"></script>
+<script src="missions.js"></script>
+<script src="hovercars.js"></script>
+
+  <script>
+    'use strict';
+    /* ============================================================
+       CIDADE DO FRONT-END 2077 — Jogo Educacional 3D
+       Arquivo unico sem modulos ES. Funciona via file://
+       Three.js r163 carregado via CDN como script classico.
+       ============================================================ */
+
+    window.addEventListener('error', function (e) {
+      var d = document.createElement('div');
+      d.style.cssText = 'position:fixed;top:0;left:0;z-index:9999;background:#cc0000;color:white;padding:20px;font-family:monospace;width:100%;';
+      d.innerHTML = '<strong>ERRO JS DETECTADO:</strong><br>' + e.message + '<br>Linha: ' + e.lineno + '<br>Se o erro for "THREE is not defined", significa que o Three.js não carregou (verifique a internet ou o bloqueio de scripts).';
+      document.body.appendChild(d);
+    });
+
+
+    // ——— CONFIGURACAO ——————————————————————————————
+    var SENS = 0.002;   // Sensibilidade do mouse
+    var SPD = 70;      // Velocidade de movimento
+    var P_HEIGHT = 1.7;     // Altura dos olhos
+    var BOUNDS = 360;     // Limite da cidade
+    var I_DIST = 20;      // Distancia de interacao
+
+    // ——— ESCADA (sobe/desce entre térreo e subsolo) ——————————
+    // [FIX] Antes essa área era calculada apenas UMA VEZ durante a criação
+    // da cena (dentro de createStorageStation), então P_HEIGHT nunca era
+    // recalculado enquanto o jogador andava — por isso não dava pra descer.
+    // Agora ela mora aqui como config global e é recalculada a cada frame
+    // dentro de updateStairs().
+    var limiteEscada = {
+      xMin: -45,   // Ajuste com base na largura da sua escada
+      xMax: -29,
+      zMin: 92,    // Onde a escada começa no chão de cima (1.7)
+      zMax: 128    // Onde a escada termina no chão de baixo (-21.7)
+    };
+    var alturaInicial = 1.7;   // Altura firme do andar superior
+    var alturaFinal = -28.3;   // Altura firme do subsolo considerei a altura do player
+
+    // ——— ESTADO —————————————————————————————————————
+    var gameStarted = false;
+    var isLocked = false;
+    var hologramOpen = false;
+    var nearBuilding = null;
+    var camYaw = 0;    // Rotacao horizontal
+    var camPitch = 0;    // Rotacao vertical
+
+    // ——— INPUT ——————————————————————————————————————
+    var KEYS = { w: false, s: false, a: false, d: false };
+
+    // ——— THREE.JS REFS ——————————————————————————————
+    var scene, renderer, camera, clock;
+    var ptPositions, ptVelocities, ptMesh;  // particulas
+    var centralCrystal, crystalLight;
+
+    // ——— EDIFICIOS ——————————————————————————————————
+    var buildings = [];   // { name, x, z, content, anim: {} }
+    var colliders = [];   // { x, z, r }
+
+    // ——— UI —————————————————————————————————————————
+    var mapCtx, fpsCount = 0, fpsTimer = 0;
+
+    /* ============================================================
+       CONTEUDO PEDAGOGICO DOS EDIFICIOS
+       ============================================================ */
+    var BUILDING_DATA = {
+      StorageStation: {
+        title: 'STORAGE STATION',
+        sub: 'Cofre da Web',
+        color: '#0099ff',
+        icon: 'a',
+        sections: [
+          {
+          tag: 'Counting Clicks with sessionStorage',
+          lbl: 'Contagem de cliques com armazenamento local',
+          desc: 'O exemplo a seguir conta quantas vezes um usuário clicou em um botão. Neste código, a string de valor é convertida em um número para que o contador possa ser incrementado:',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
+          {
+          tag: 'window.localStorage',
+          lbl: 'Armazenamento Local',
+          desc: 'Armazena dados sem data de expiracao. Os dados permanecem salvos mesmo apos fechar a aba ou o navegador, e ficam disponiveis no dia seguinte, semana ou ano depois.',
+          ex: '// Salvar\nlocalStorage.setItem("lastname", "Smith");\nlocalStorage.setItem("bgcolor", "yellow");\n\n// Recuperar\nconst nome = localStorage.getItem("lastname");\n\n// Remover\nlocalStorage.removeItem("lastname");'
+          },
+          {
+          tag: 'window.sessionStorage',
+          lbl: 'Armazenamento de Sessao',
+          desc: 'Funciona igual ao localStorage, mas armazena os dados apenas durante a sessao atual. Os dados sao apagados quando o usuario fecha a aba especifica do navegador.',
+          ex: 'function clickCounter() {\n  if (sessionStorage.clickcount) {\n    sessionStorage.clickcount =\n      Number(sessionStorage.clickcount) + 1;\n  } else {\n    sessionStorage.clickcount = 1;\n  }\n}'
+          },
+          {
+          tag: 'typeof(Storage)',
+          lbl: 'Verificacao de Suporte',
+          desc: 'Testa se o navegador suporta a Web Storage API antes de usa-la. Evita erros em navegadores muito antigos que nao implementam o recurso.',
+          ex: 'if (typeof(Storage) !== "undefined") {\n  // navegador suporta\n  // Web Storage\n} else {\n  // sem suporte\n}'
+          },
+          {
+          tag: 'setItem() / getItem()',
+          lbl: 'Salvar e Ler Pares',
+          desc: 'Metodos centrais da API: setItem() cria um par chave/valor, e getItem() recupera o valor pela chave. Funcionam de forma idêntica em localStorage e sessionStorage.',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
+          {
+      tag: 'Boas Práticas',
+      lbl: 'Segurança e Utilização',
+      desc: 'A Web Storage API não deve ser utilizada para armazenar informações sensíveis, como senhas, tokens de autenticação ou dados bancários. Seu uso é recomendado para preferências do usuário, configurações da interface e dados temporários.',
+      ex: '// Recomendado\nlocalStorage.setItem("tema", "escuro");\n\n// Não recomendado\n// localStorage.setItem("senha", "123456");'
+          },
+        ]
+      },
+      StorageSub: {
+        title: 'STORAGE STATION: SUBSOLO',
+        sub: 'Cofre da Web - Setor de Backup',
+        color: '#0099ff',
+        icon: '💾',
+        sections: [
+          {
+            tag: 'DATA PERSISTENCE',
+            lbl: 'Armazenamento Estruturado',
+            desc: 'O Storage Station armazena de forma estruturada os dados cruciais do jogo.',
+            ex: '// Camada de dados segura no subsolo'
+          },
+          {
+            tag: 'DATA PROTECTION',
+            lbl: 'Persistência do Usuário',
+            desc: 'Aqui as informações persistentes do usuário são lidas, validadas e mantidas em segurança.',
+            ex: 'console.log("Acesso autorizado ao setor de backup");'
+          },
+          {
+            tag: 'BACKEND LAYER',
+            lbl: 'Camada de Persistência',
+            desc: 'Conexão direta simulada com os bancos de dados e arquivos de configuração globais.',
+            ex: 'database.verifyIntegrity();'
+          }
+        ]
+      },
+
+      html: {
+        title: 'HTML TOWER',
+        sub: 'Estrutura da Web',
+        color: '#0099ff',
+        icon: '&lt;/&gt;',
+        sections: [
+          {
+            tag: '&lt;header&gt;', lbl: 'Header', desc: 'Cabeçalho da página. Contém logo, título e navegação. Aparece uma vez no &lt;body&gt;.',
+            ex: '&lt;header&gt;\n  &lt;h1&gt;Meu Site&lt;/h1&gt;\n  &lt;nav&gt;...&lt;/nav&gt;\n&lt;/header&gt;'
+          },
+          {
+            tag: '&lt;nav&gt;', lbl: 'Navegacao', desc: 'Agrupa links de navegação. Melhora acessibilidade e SEO.',
+            ex: '&lt;nav aria-label="Principal"&gt;\n  &lt;a href="/"&gt;Home&lt;/a&gt;\n  &lt;a href="/sobre"&gt;Sobre&lt;/a&gt;\n&lt;/nav&gt;'
+          },
+          {
+            tag: '&lt;main&gt;', lbl: 'Conteudo Principal', desc: 'Envolve o conteúdo principal e único da página. Só um por documento.',
+            ex: '&lt;main&gt;\n  &lt;h2&gt;Bem-vindo!&lt;/h2&gt;\n  &lt;section&gt;...&lt;/section&gt;\n&lt;/main&gt;'
+          },
+          {
+            tag: '&lt;section&gt;', lbl: 'Secao', desc: 'Agrupa conteúdo temático. Deve ter um heading próprio (&lt;h2&gt;, &lt;h3&gt;...).',
+            ex: '&lt;section&gt;\n  &lt;h2&gt;Nossos Servicos&lt;/h2&gt;\n  &lt;p&gt;Descricao...&lt;/p&gt;\n&lt;/section&gt;'
+          },
+          {
+            tag: '&lt;article&gt;', lbl: 'Artigo', desc: 'Conteúdo autossuficiente e reutilizável: posts, notícias, comentários.',
+            ex: '&lt;article&gt;\n  &lt;h3&gt;Titulo do Post&lt;/h3&gt;\n  &lt;time&gt;2077-01-01&lt;/time&gt;\n  &lt;p&gt;Conteudo...&lt;/p&gt;\n&lt;/article&gt;'
+          },
+          {
+            tag: '&lt;footer&gt;', lbl: 'Rodape', desc: 'Rodapé com copyright, links secundários e informações de contato.',
+            ex: '&lt;footer&gt;\n  &lt;p&gt;&amp;copy; 2077&lt;/p&gt;\n  &lt;nav&gt;Links&lt;/nav&gt;\n&lt;/footer&gt;'
+          },
+          {
+            tag: '&lt;a&gt;', lbl: 'Anchor (Links)', desc: 'Cria links para outras páginas, arquivos ou âncoras internas.',
+            ex: '&lt;a href="https://site.com"\n   target="_blank"&gt;\n  Visite o site\n&lt;/a&gt;'
+          },
+          {
+            tag: '&lt;img&gt;', lbl: 'Imagens', desc: 'Exibe imagens na página. O atributo alt é essencial para acessibilidade.',
+            ex: '&lt;img src="foto.jpg"\n     alt="Descricao detalhada"\n     loading="lazy"&gt;'
+          },
+          {
+            tag: '&lt;form&gt;', lbl: 'Formularios', desc: 'Coleta dados do usuário para enviar a um servidor.',
+            ex: '&lt;form action="/submit"&gt;\n  &lt;input type="text" required&gt;\n  &lt;button type="submit"&gt;\n    Enviar\n  &lt;/button&gt;\n&lt;/form&gt;'
+          },
+          {
+            tag: '&lt;table&gt;', lbl: 'Tabelas', desc: 'Exibe dados tabulares bidimensionais. Use com moderação.',
+            ex: '&lt;table&gt;\n  &lt;tr&gt;\n    &lt;th&gt;Nome&lt;/th&gt;\n    &lt;td&gt;Neo&lt;/td&gt;\n  &lt;/tr&gt;\n&lt;/table&gt;'
+          }
+        ]
+      },
+
+      css: {
+        title: 'CSS LAB',
+        sub: 'Estilo & Design',
+        color: '#cc00ff',
+        icon: '{ }',
+        sections: [
+          {
+            tag: 'Flexbox', lbl: 'CSS Flexbox', desc: 'Layout unidimensional. Alinha itens em linha ou coluna. Ideal para navbars e cards.',
+            ex: '.container {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 1rem;\n}'
+          },
+          {
+            tag: 'Grid', lbl: 'CSS Grid', desc: 'Layout bidimensional. Controla linhas E colunas. Ideal para layouts de página.',
+            ex: '.grid {\n  display: grid;\n  grid-template-columns:\n    repeat(3, 1fr);\n  gap: 20px;\n}'
+          },
+          {
+            tag: 'var()', lbl: 'Variaveis CSS', desc: 'Valores reutilizáveis no :root. Facilita theming e manutenção do projeto.',
+            ex: ':root {\n  --primary: #00f5ff;\n  --space: 1rem;\n}\n.btn {\n  color: var(--primary);\n}'
+          },
+          {
+            tag: '@keyframes', lbl: 'Animacoes', desc: 'Crie animações fluidas. Use animation-delay para efeitos escalonados.',
+            ex: '@keyframes pulsar {\n  0%   { opacity: 1; }\n  50%  { opacity: 0.4; }\n  100% { opacity: 1; }\n}'
+          },
+          {
+            tag: '@media', lbl: 'Responsividade', desc: 'Media queries adaptam o layout. Use mobile-first: escreva o mobile primeiro.',
+            ex: '.grid { grid-template-columns: 1fr; }\n@media (min-width: 768px) {\n  .grid {\n    grid-template-columns:\n      repeat(3, 1fr);\n  }\n}'
+          },
+          {
+            tag: 'position', lbl: 'Position', desc: 'Controla o fluxo do documento. absolute, relative, fixed ou sticky.',
+            ex: '.header {\n  position: sticky;\n  top: 0;\n  z-index: 100;\n}'
+          },
+          {
+            tag: 'Box Model', lbl: 'Modelo de Caixa', desc: 'Como margens, bordas e paddings afetam o tamanho final do elemento.',
+            ex: '* {\n  box-sizing: border-box;\n}\n.box {\n  padding: 10px;\n  border: 1px solid red;\n}'
+          },
+          {
+            tag: 'z-index', lbl: 'Empilhamento Z', desc: 'Controla o empilhamento 3D de elementos sobrepostos. Exige position.',
+            ex: '.modal {\n  position: fixed;\n  z-index: 9999;\n}'
+          },
+          {
+            tag: ':hover', lbl: 'Pseudo-classes', desc: 'Estilos que só se aplicam em estados específicos do elemento (hover, focus).',
+            ex: '.btn:hover {\n  background: #00f5ff;\n  color: #000;\n}'
+          },
+          {
+            tag: 'transition', lbl: 'Transicoes', desc: 'Aplica mudanças suaves a propriedades numéricas sem usar keyframes.',
+            ex: '.btn {\n  transition: all 0.3s ease;\n}\n.btn:hover {\n  transform: scale(1.1);\n}'
+          }
+        ]
+      },
+
+      js: {
+        title: 'JS ARENA',
+        sub: 'Logica & Dinamismo',
+        color: '#ffcc00',
+        icon: 'JS',
+        sections: [
+          {
+            tag: 'addEventListener', lbl: 'Eventos DOM', desc: 'Escute interações do usuário: cliques, teclado, foco e input.',
+            ex: 'document\n  .getElementById("btn")\n  .addEventListener("click",\n    (event) => {\n      console.log("Clicou!");\n    }\n  );'
+          },
+          {
+            tag: 'querySelector', lbl: 'Manipulacao DOM', desc: 'Selecione e modifique elementos HTML em tempo real.',
+            ex: 'const el = document.querySelector("h1");\nel.textContent = "Novo titulo";\nel.classList.add("ativo");\nel.style.color = "#00f5ff";'
+          },
+          {
+            tag: 'class', lbl: 'Classes ES6', desc: 'POO com classes, construtores, herança (extends) e métodos.',
+            ex: 'class Estudante {\n  constructor(nome, nota) {\n    this.nome = nome;\n    this.nota = nota;\n  }\n  aprovado() {\n    return this.nota >= 7;\n  }\n}'
+          },
+          {
+            tag: '.filter .map .reduce', lbl: 'Metodos de Array', desc: 'Transforme coleções de dados de forma declarativa e imutável.',
+            ex: 'const notas = [8, 5, 9, 3, 7];\nconst aprovados = notas\n  .filter(n => n >= 7);\n// [8, 9, 7]'
+          },
+          {
+            tag: 'async / await', lbl: 'Fetch API', desc: 'Requisições HTTP assíncronas para APIs REST com async/await.',
+            ex: 'async function getData() {\n  const r = await fetch(\n    "https://api.exemplo.com"\n  );\n  const data = await r.json();\n  return data;\n}'
+          },
+          {
+            tag: 'localStorage', lbl: 'Storage Local', desc: 'Salve dados no navegador que sobrevivem ao refresh da página.',
+            ex: 'localStorage.setItem("tema", "dark");\nconst tema = localStorage.getItem("tema");'
+          },
+          {
+            tag: 'setTimeout', lbl: 'Timers', desc: 'Atrase a execução de uma função (setTimeout) ou repita em loop (setInterval).',
+            ex: 'setTimeout(() => {\n  console.log("Atrasado!");\n}, 2000); // 2 segundos'
+          },
+          {
+            tag: 'try / catch', lbl: 'Tratamento de Erros', desc: 'Capture e trate erros elegantemente sem quebrar toda a aplicação.',
+            ex: 'try {\n  funcaoPerigosa();\n} catch (error) {\n  console.error("Falha:", error);\n}'
+          },
+          {
+            tag: 'Destructuring', lbl: 'Desestruturacao', desc: 'Extraia valores de arrays ou propriedades de objetos em variáveis distintas.',
+            ex: 'const user = { name: "Neo", age: 30 };\nconst { name, age } = user;\nconsole.log(name); // Neo'
+          },
+          {
+            tag: '=>', lbl: 'Arrow Functions', desc: 'Sintaxe curta para funções. Não cria seu próprio contexto de "this".',
+            ex: 'const somar = (a, b) => a + b;\nconsole.log(somar(2, 3)); // 5'
+          }
+        ]
+      },
+
+      bs: {
+        title: 'BOOTSTRAP DISTRICT',
+        sub: 'Grid System',
+        color: '#9933ff',
+        icon: '[ ]',
+        sections: [
+          {
+            tag: '.container', lbl: 'Container', desc: 'Centraliza e limita a largura. container-fluid ocupa 100% da tela.',
+            ex: '&lt;div class="container"&gt;\n  Conteudo centralizado\n&lt;/div&gt;\n&lt;div class="container-fluid"&gt;\n  Largura total\n&lt;/div&gt;'
+          },
+          {
+            tag: '.row', lbl: 'Row (Linha)', desc: 'Linha que agrupa colunas. Usa Flexbox internamente com margens negativas.',
+            ex: '&lt;div class="container"&gt;\n  &lt;div class="row g-3"&gt;\n    &lt;!-- colunas aqui --&gt;\n    &lt;!-- g-3 = gap 1rem --&gt;\n  &lt;/div&gt;\n&lt;/div&gt;'
+          },
+          {
+            tag: '.col-*', lbl: 'Colunas (1-12)', desc: 'Grid de 12 colunas. Defina tamanhos para cada breakpoint separadamente.',
+            ex: '&lt;div class="row"&gt;\n  &lt;div class="col-12\n             col-md-6\n             col-lg-4"&gt;\n    Responsivo!\n  &lt;/div&gt;\n&lt;/div&gt;'
+          },
+          {
+            tag: 'Breakpoints', lbl: 'Breakpoints BS5', desc: 'xs, sm, md, lg, xl, xxl definem pontos de quebra responsivos.',
+            ex: '// xs: < 576px (padrao)\n// sm: >= 576px\n// md: >= 768px\n// lg: >= 992px\n// xl: >= 1200px\n// xxl: >= 1400px'
+          },
+          {
+            tag: '.card', lbl: 'Cards', desc: 'Contêiner flexível e extensível com várias variantes e opções.',
+            ex: '&lt;div class="card"&gt;\n  &lt;div class="card-body"&gt;\n    &lt;h5 class="card-title"&gt;Titulo&lt;/h5&gt;\n  &lt;/div&gt;\n&lt;/div&gt;'
+          },
+          {
+            tag: '.modal', lbl: 'Modais', desc: 'Diálogos e pop-ups sobrepostos baseados em JavaScript.',
+            ex: '&lt;div class="modal fade" id="meuModal"&gt;\n  &lt;div class="modal-dialog"&gt;\n    &lt;!-- Conteudo --&gt;\n  &lt;/div&gt;\n&lt;/div&gt;'
+          },
+          {
+            tag: '.navbar', lbl: 'Barra de Navegacao', desc: 'Cabeçalho responsivo de navegação com suporte para branding e links.',
+            ex: '&lt;nav class="navbar navbar-expand-lg"&gt;\n  &lt;a class="navbar-brand" href="#"&gt;\n    Logo\n  &lt;/a&gt;\n&lt;/nav&gt;'
+          },
+          {
+            tag: '.btn', lbl: 'Botoes', desc: 'Estilos pré-definidos de botões com estados de interação.',
+            ex: '&lt;button class="btn btn-primary"&gt;\n  Salvar\n&lt;/button&gt;\n&lt;button class="btn btn-outline-danger"&gt;\n  Excluir\n&lt;/button&gt;'
+          },
+          {
+            tag: '.form-control', lbl: 'Controles de Formulario', desc: 'Inputs textuais estilizados e responsivos para máxima usabilidade.',
+            ex: '&lt;input type="email" class="form-control"\n  placeholder="nome@exemplo.com"&gt;'
+          },
+          {
+            tag: 'm-* p-*', lbl: 'Classes Utilitarias', desc: 'Mude margin (m) e padding (p) usando as classes de escala (0 a 5).',
+            ex: '&lt;!-- Margin Top 3, Padding X 5 --&gt;\n&lt;div class="mt-3 px-5"&gt;\n  Espacado\n&lt;/div&gt;'
+          }
+        ]
+      },
+
+      a11y: {
+        title: 'ACCESSIBILITY CENTER',
+        sub: 'Web Para Todos',
+        color: '#00ff88',
+        icon: '&nbsp;A&nbsp;',
+        sections: [
+          {
+            tag: 'aria-label', lbl: 'ARIA Label', desc: 'Nome acessível para elementos sem texto visível. Essencial para botões com ícones.',
+            ex: '&lt;button\n  aria-label="Fechar menu"&gt;\n  X\n&lt;/button&gt;\n&lt;input\n  aria-label="Buscar produtos"\n  type="search"&gt;'
+          },
+          {
+            tag: 'role', lbl: 'Roles ARIA', desc: 'Define a função semântica para leitores de tela. Use apenas quando HTML nativo nao bastar.',
+            ex: '&lt;div role="navigation"\n  aria-label="Menu"&gt;\n&lt;/div&gt;\n&lt;div role="dialog"\n  aria-modal="true"&gt;\n&lt;/div&gt;'
+          },
+          {
+            tag: 'alt', lbl: 'Texto Alternativo', desc: 'Descreve imagens para leitores de tela. Decorativas usam alt="" (vazio).',
+            ex: '&lt;!-- Informativa --&gt;\n&lt;img src="grafico.png"\n  alt="Crescimento 30%"&gt;\n\n&lt;!-- Decorativa --&gt;\n&lt;img src="bg.png" alt=""&gt;'
+          },
+          {
+            tag: 'tabindex', lbl: 'Tabindex', desc: 'Controla navegação por teclado. 0 = ordem natural; -1 = fora do tab.',
+            ex: '&lt;div tabindex="0"\n  role="button"&gt;\n  Focavel pelo tab\n&lt;/div&gt;\n&lt;button tabindex="-1"&gt;\n  Fora do tab\n&lt;/button&gt;'
+          },
+          {
+            tag: 'Contraste WCAG', lbl: 'Contraste', desc: 'WCAG 2.1: texto normal exige ratio 4.5:1 (AA). Texto grande: 3:1.',
+            ex: '/* Bom contraste (AA) */\n.texto {\n  color: #e0e8ff;      /* claro */\n  background: #0a0020; /* escuro */\n  /* ratio: ~12:1 OK */\n}'
+          },
+          {
+            tag: 'Semântica', lbl: 'HTML Semântico', desc: 'A base da acessibilidade. Use tags corretas em vez de div para tudo.',
+            ex: '&lt;!-- Correto --&gt;\n&lt;button&gt;Clique&lt;/button&gt;\n&lt;!-- Errado --&gt;\n&lt;div class="btn"&gt;Clique&lt;/div&gt;'
+          },
+          {
+            tag: ':focus', lbl: 'Keyboard Focus', desc: 'Nunca esconda o anel de foco (outline) sem providenciar uma alternativa clara.',
+            ex: 'button:focus-visible {\n  outline: 3px solid #00f5ff;\n  outline-offset: 2px;\n}'
+          },
+          {
+            tag: 'Screen Readers', lbl: 'Leitores de Tela', desc: 'Ferramentas (NVDA, VoiceOver) que leem o código para usuários cegos.',
+            ex: 'Teste sua aplicacao navegando\ncom o VoiceOver/NVDA e a tecla TAB\ncom o monitor desligado!'
+          },
+          {
+            tag: 'aria-hidden', lbl: 'Aria Hidden', desc: 'Esconde conteúdo puramente visual dos leitores de tela (como ícones decorativos).',
+            ex: '&lt;i class="icon-star"\n   aria-hidden="true"&gt;&lt;/i&gt;\n&lt;span&gt;Favorito&lt;/span&gt;'
+          },
+          {
+            tag: 'Skip Links', lbl: 'Links de Pulo', desc: 'Link invisível no início da página que pula direto para o conteúdo principal.',
+            ex: '&lt;a href="#main" class="skip-link"&gt;\n  Pular para conteudo principal\n&lt;/a&gt;\n/* Mostra so no focus() */'
+          }
+        ]
+      },
+
+      ai: {
+        title: 'AI COMMAND CENTER',
+        sub: 'Inteligencia Artificial',
+        color: '#bb00ff',
+        icon: 'AI',
+        sections: [
+          {
+            tag: 'Engenharia de Prompt', lbl: 'Prompt', desc: 'A arte de escrever instrucoes claras para IAs para obter resultados melhores.',
+            ex: 'Ex: Aja como um especialista em JS e explique closures de forma simples.'
+          },
+          {
+            tag: 'Copilot/Gemini', lbl: 'Assistentes', desc: 'IAs generativas que ajudam a escrever codigo e resolver problemas complexos.',
+            ex: '// Use comentarios para pedir ajuda\n// Copilot: gere uma funcao de debounce'
+          },
+          {
+            tag: 'Agentes e MCP', lbl: 'Autonomia', desc: 'Agentes de IA podem executar tarefas multiplas e usar ferramentas externas (MCP).',
+            ex: 'Model Context Protocol\nPermite conectar agentes a recursos.'
+          },
+          {
+            tag: 'RAG', lbl: 'RAG', desc: 'Retrieval-Augmented Generation. Fornece contexto extra para a IA antes da resposta.',
+            ex: 'IA busca docs internos e anexa ao contexto do prompt.'
+          },
+          {
+            tag: 'Refatoracao', lbl: 'Refatoracao', desc: 'Peca para a IA limpar, otimizar ou modernizar seu codigo antigo.',
+            ex: '"Refatore esta funcao usando\n async/await e destructuring"'
+          },
+          {
+            tag: 'Debugging', lbl: 'Debugging com IA', desc: 'Cole o erro do console e o trecho de codigo. A IA acha o bug em segundos.',
+            ex: '"Estou recebendo TypeError: \n cannot read properties of undefined\n na linha 42"'
+          },
+          {
+            tag: 'Boilerplates', lbl: 'Geracao de Base', desc: 'IAs geram estruturas base repetitivas (HTML, configs) instantaneamente.',
+            ex: '"Crie o HTML/CSS de um\n cartao de perfil responsivo\n usando Flexbox"'
+          },
+          {
+            tag: 'Testes Unitarios', lbl: 'Geracao de Testes', desc: 'Agilize a cobertura de testes pedindo testes para funcoes existentes.',
+            ex: '"Escreva testes Jest cobrindo os\n edge cases desta funcao de soma"'
+          },
+          {
+            tag: 'Explicacao', lbl: 'Explicacao de Codigo', desc: 'Nao entende um regex ou algoritmo legado? Peca explicacao linha a linha.',
+            ex: '"Explique o que esta Expressao\n Regular faz: /^[a-z0-9]+$/i"'
+          },
+          {
+            tag: 'Arquitetura', lbl: 'Design de Software', desc: 'IAs podem criticar e sugerir melhorias na arquitetura global da sua aplicacao.',
+            ex: '"Quais as desvantagens de usar\n LocalStorage para armazenar o JWT?"'
+          }
+        ]
+      },
+
+      // ================= 10 NOVOS POLOS EVOLUTIVOS =================
+      b1: { title: 'FORMS FACTORY', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Formularios HTML. Alunos irao evoluir.' }] },
+      b2: { title: 'MEDIA MUSEUM', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Audio e Video HTML. Alunos irao evoluir.' }] },
+      b3: { title: 'TYPOGRAPHY TEMPLE', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Fontes CSS. Alunos irao evoluir.' }] },
+      b4: { title: 'ANIMATION ALLEY', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Animacoes CSS. Alunos irao evoluir.' }] },
+      b5: { title: 'DOM DOMAIN', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para DOM API. Alunos irao evoluir.' }] },
+      b6: { title: 'ARRAY ARCADE', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Arrays JS. Alunos irao evoluir.' }] },
+      b7: { title: 'STORAGE STATION', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Local Storage. Alunos irao evoluir.' }] },
+      b8: { title: 'CANVAS COLISEUM', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Canvas 2D. Alunos irao evoluir.' }] },
+      b9: { title: 'UI/UX HUB', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Design UI/UX. Alunos irao evoluir.' }] },
+      b10: { title: 'MOBILE MARKET', sub: 'Polos Evolutivos', color: '#aaaaaa', icon: '?', sections: [{ tag: 'Em Construcao', lbl: 'Terreno', desc: 'Area reservada para Mobile Responsivo. Alunos irao evoluir.' }] }
+    };
+
+    /* ============================================================
+       HELPER: CRIAR SPRITE DE TEXTO (LABEL DOS EDIFICIOS)
+       ============================================================ */
+    function makeLabel(text, color, x, y, z) {
+      y += 12; // Eleva os letreiros para melhor visualizacao
+      var cv = document.createElement('canvas');
+      cv.width = 512; cv.height = 128;
+      var ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, 512, 128);
+      ctx.shadowColor = ctx.fillStyle = color;
+      ctx.shadowBlur = 20;
+      ctx.font = 'bold 32px Orbitron, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(text, 256, 76);
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(cv), transparent: true
+      }));
+      sp.scale.set(22, 5.5, 1);
+      sp.position.set(x, y, z);
+      scene.add(sp);
+      return sp;
+    }
+
+    function neonEdges(geo, color) {
+      var ln = new THREE.LineSegments(
+        new THREE.EdgesGeometry(geo),
+        new THREE.LineBasicMaterial({ color: color })
+      );
+      return ln;
+    }
+
+    function stdMat(c, e, ei) {
+      return new THREE.MeshStandardMaterial({
+        color: c, emissive: e, emissiveIntensity: ei !== undefined ? ei : 0.4,
+        roughness: 0.3, metalness: 0.7
+      });
+    }
+
+    function addPointLight(c, intensity, dist, x, y, z) {
+      var l = new THREE.PointLight(c, intensity, dist);
+      l.position.set(x, y, z);
+      scene.add(l);
+      return l;
+    }
+
+    /* ============================================================
+       INICIALIZAR RENDERER
+       ============================================================ */
+    function initRenderer() {
+      var canvas = document.getElementById('game-canvas');
+      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.toneMappingExposure = 1.2;
+    }
+
+    /* ============================================================
+       INICIALIZAR CENA (luzes, chao, ceu, particulas, postes)
+       ============================================================ */
+    function initScene() {
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x000510);
+      scene.fog = new THREE.FogExp2(0x000a1a, 0.009);
+      clock = new THREE.Clock();
+
+      // Luzes ambiente e direcional
+      scene.add(new THREE.AmbientLight(0x0a0520, 1.5));
+      var dir = new THREE.DirectionalLight(0x3366cc, 0.6);
+      dir.position.set(60, 120, 40);
+      dir.castShadow = true;
+      dir.shadow.mapSize.set(2048, 2048);
+      dir.shadow.camera.left = -120; dir.shadow.camera.right = 120;
+      dir.shadow.camera.top = 120; dir.shadow.camera.bottom = -120;
+      dir.shadow.camera.far = 400;
+      scene.add(dir);
+
+      // Point lights neon tematicos
+      addPointLight(0xff00aa, 4, 60, 0, 12, 0);
+      addPointLight(0x0088ff, 3, 70, -40, 20, -20);
+      addPointLight(0xaa00ff, 3, 70, 40, 20, -20);
+      addPointLight(0xffcc00, 3, 70, -40, 15, 32);
+      addPointLight(0x6633ff, 3, 70, 42, 15, 32);
+      addPointLight(0x00ff66, 3, 70, 0, 15, 58);
+
+      // Chao
+      var gGeo = new THREE.PlaneGeometry(400, 400);
+      var gMat = new THREE.MeshStandardMaterial({ color: 0x030318, emissive: 0x000510, emissiveIntensity: 0.5, roughness: 0.9 });
+      var ground = new THREE.Mesh(gGeo, gMat);
+      ground.rotation.x = -Math.PI / 2;
+      ground.receiveShadow = true;
+      scene.add(ground);
+      var grid = new THREE.GridHelper(400, 100, 0x001030, 0x000820);
+      grid.position.y = 0.01;
+      scene.add(grid);
+
+// UNDERGROUND (chão do subsolo)
+      var ugGeo = new THREE.PlaneGeometry(150, 150,);
+      var ugMat = new THREE.MeshStandardMaterial({ color: 0x5efb00, emissive: 0x5efb00, emissiveIntensity: 0.5, roughness: 0.9 });
+      var UnderGround = new THREE.Mesh(ugGeo, ugMat);
+      UnderGround.position.set(-40, -30, 155);
+      scene.add(UnderGround);
+      
+      UnderGround.rotation.x = -Math.PI / 2;
+      UnderGround.receiveShadow = true;
+      UnderGround.position.y= -30;
+      
+
+      
+      var grid = new THREE.GridHelper(400, 100, 0x001030, 0x000820);
+      grid.position.y = -30;
+      scene.add(grid);
+
+      // Linhas de rua principais
+      var lineMat = new THREE.LineBasicMaterial({ color: 0x001a40 });
+      var pts = [];
+      for (var i = -200; i <= 200; i += 40) {
+        pts.push(new THREE.Vector3(i, 0.05, -200)); pts.push(new THREE.Vector3(i, 0.05, 200));
+        pts.push(new THREE.Vector3(-200, 0.05, i)); pts.push(new THREE.Vector3(200, 0.05, i));
+      }
+      scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), lineMat));
+
+      // Ceu e estrelas
+      var skyGeo = new THREE.SphereGeometry(290, 32, 16);
+      scene.add(new THREE.Mesh(skyGeo, new THREE.MeshBasicMaterial({ color: 0x000510, side: THREE.BackSide, fog: false })));
+
+      var sCount = 3000, sPos = new Float32Array(sCount * 3);
+      for (var s = 0; s < sCount; s++) {
+        var theta = Math.random() * Math.PI * 2;
+        var phi = Math.acos(Math.random());
+        var r = 270 + Math.random() * 15;
+        sPos[s * 3] = r * Math.sin(phi) * Math.cos(theta);
+        sPos[s * 3 + 1] = Math.abs(r * Math.cos(phi));
+        sPos[s * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+      }
+      var sGeo = new THREE.BufferGeometry();
+      sGeo.setAttribute('position', new THREE.BufferAttribute(sPos, 3));
+      scene.add(new THREE.Points(sGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.8, transparent: true, opacity: 0.9, fog: false })));
+
+      //moon
+      var moonGeo = new THREE.SphereGeometry(8, 16, 16);
+      var mat = new THREE.MeshStandardMaterial({
+        color:              0xfff,
+      emissive:             0x223388,
+      emissiveIntensity:    0.5,
+      });
+      
+
+      
+      // Particulas (chuva de dados)
+      var pCount = 2500;
+      ptPositions = new Float32Array(pCount * 3);
+      ptVelocities = new Float32Array(pCount);
+      for (var p = 0; p < pCount; p++) {
+        ptPositions[p * 3] = (Math.random() - 0.5) * 350;
+        ptPositions[p * 3 + 1] = Math.random() * 80;
+        ptPositions[p * 3 + 2] = (Math.random() - 0.5) * 350;
+        ptVelocities[p] = 0.04 + Math.random() * 0.1;
+      }
+      var pGeo = new THREE.BufferGeometry();
+      pGeo.setAttribute('position', new THREE.BufferAttribute(ptPositions, 3));
+      ptMesh = new THREE.Points(pGeo, new THREE.PointsMaterial({ color: 0x0088ff, size: 0.15, transparent: true, opacity: 0.5 }));
+      scene.add(ptMesh);
+
+      // Postes de luz
+      var poleData = [
+        { x: -20, z: -40, c: 0x00f5ff }, { x: 20, z: -40, c: 0xff00aa }, { x: -20, z: 0, c: 0x00f5ff },
+        { x: 20, z: 0, c: 0xffff00 }, { x: -20, z: 40, c: 0x00ff88 }, { x: 20, z: 40, c: 0xff00aa },
+        { x: 0, z: -50, c: 0x0088ff }, { x: 0, z: 20, c: 0xcc00ff }, { x: -60, z: 5, c: 0xffcc00 }, { x: 60, z: 5, c: 0x00ccff }
+      ];
+      poleData.forEach(function (pd) {
+        var shaft = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.08, 0.12, 9, 6),
+          new THREE.MeshStandardMaterial({ color: 0x223344, metalness: 0.9, roughness: 0.4 })
+        );
+        shaft.position.set(pd.x, 4.5, pd.z);
+        scene.add(shaft);
+        var lamp = new THREE.Mesh(
+          new THREE.SphereGeometry(0.35, 8, 8),
+          new THREE.MeshStandardMaterial({ color: pd.c, emissive: pd.c, emissiveIntensity: 3 })
+        );
+        lamp.position.set(pd.x, 9.4, pd.z);
+        scene.add(lamp);
+        addPointLight(pd.c, 1.5, 18, pd.x, 9, pd.z);
+      });
+    }
+
+    /* ============================================================
+       CAMERA
+       ============================================================ */
+    function initCamera() {
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 500);
+      camera.rotation.order = 'YXZ'; // Importante para FPS: primeiro yaw, depois pitch
+      camera.position.set(0, P_HEIGHT, -58);
+    }
+
+    /* ============================================================
+       INPUT (teclado + pointer lock + mouse look)
+       ============================================================ */
+    var isDragging = false;
+
+    function initInput() {
+      // Teclado
+      document.addEventListener('keydown', function (e) {
+        var k = e.key.toLowerCase();
+        if (k === 'w' || e.code === 'ArrowUp') KEYS.w = true;
+        if (k === 's' || e.code === 'ArrowDown') KEYS.s = true;
+        if (k === 'a' || e.code === 'ArrowLeft') KEYS.a = true;
+        if (k === 'd' || e.code === 'ArrowRight') KEYS.d = true;
+        // Tecla E — interagir
+        if (k === 'e') {
+          if (!hologramOpen && nearBuilding) { openHologram(nearBuilding.content); }
+          else if (hologramOpen) { closeHologram(); }
+        }
+        // ESC fecha holograma
+        if (e.key === 'Escape' && hologramOpen) { closeHologram(); }
+      });
+      document.addEventListener('keyup', function (e) {
+        var k = e.key.toLowerCase();
+        if (k === 'w' || e.code === 'ArrowUp') KEYS.w = false;
+        if (k === 's' || e.code === 'ArrowDown') KEYS.s = false;
+        if (k === 'a' || e.code === 'ArrowLeft') KEYS.a = false;
+        if (k === 'd' || e.code === 'ArrowRight') KEYS.d = false;
+      });
+
+      // Pointer Lock — captura o mouse no canvas
+      var canvas = document.getElementById('game-canvas');
+      canvas.addEventListener('mousedown', function () {
+        if (gameStarted && !hologramOpen) {
+          isDragging = true;
+          if (!isLocked) canvas.requestPointerLock();
+        }
+      });
+      document.addEventListener('mouseup', function () {
+        isDragging = false;
+      });
+
+      document.addEventListener('pointerlockchange', function () {
+        isLocked = !!document.pointerLockElement;
+        if (!isLocked && !hologramOpen) {
+          document.getElementById('pause-scr').classList.remove('hidden');
+        } else {
+          document.getElementById('pause-scr').classList.add('hidden');
+        }
+      });
+
+      // Mouse Look — atualiza yaw e pitch
+      document.addEventListener('mousemove', function (e) {
+        if (!gameStarted || hologramOpen) return;
+        if (!isLocked && !isDragging) return; // Fallback: click and drag if not locked
+
+        var mx = e.movementX || e.mozMovementX || e.webkitMovementX || 0;
+        var my = e.movementY || e.mozMovementY || e.webkitMovementY || 0;
+
+        camYaw -= mx * SENS;
+        camPitch -= my * SENS;
+        camPitch = Math.max(-1.3, Math.min(1.3, camPitch));
+        camera.rotation.y = camYaw;   // Rotacao horizontal (esq/dir)
+        camera.rotation.x = camPitch; // Rotacao vertical (cima/baixo)
+      });
+
+      // Resize
+      window.addEventListener('resize', function () {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    }
+
+    /* ============================================================
+       EDIFICIOS
+       ============================================================ */
+    var floatingPanels = [];
+
+    function initBuildings() {
+      /* [DEV NOTE] 
+         Para adicionar um novo prédio:
+         1. Crie uma função (ex: createMeuPredio()) e invoque-a abaixo.
+         2. Adicione os dados do prédio no `BUILDING_DATA`.
+         3. Registre o colisor em `buildings.push({ name, x, z, r, content })`
+            para que o sistema de interação o detecte automaticamente.
+      */
+      createHtmlTower();
+      createCssLab();
+      createJsArena();
+      createBootstrapDistrict();
+      createA11yCenter();
+      createAiCenter();
+      createPortal();
+      createCentralSquare();
+      createFloatingPanels();
+      createEvolutionaryBuildings();
+      createStorageStation();
+      createSubsolo();
+      if (typeof initHovercars !== 'undefined') initHovercars(scene);
+    }
+
+    function updatePanels(time) {
+      floatingPanels.forEach(function (p) {
+        p.mesh.rotation.y = time * 0.5;
+        p.mesh.position.y = p.baseY + Math.sin(time * 2 + p.offset) * 0.5;
+      });
+    }
+
+    function createFloatingPanels() {
+      var pData = [
+        { x: -20, z: -10, c: '#00f5ff', text: 'HTML DICA:\nUse tags semanticas!' },
+        { x: 20, z: -10, c: '#ff00aa', text: 'CSS DICA:\nFlexbox centraliza\nfacil!' },
+        { x: -20, z: 20, c: '#ffff00', text: 'JS DICA:\nconsole.log()\né seu amigo!' }
+      ];
+
+      pData.forEach(function (pd, i) {
+        var cv = document.createElement('canvas');
+        cv.width = 256; cv.height = 128;
+        var ctx = cv.getContext('2d');
+        ctx.fillStyle = pd.c;
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 20px monospace';
+        var lines = pd.text.split('\n');
+        lines.forEach(function (l, j) { ctx.fillText(l, 128, 40 + j * 25); });
+
+        var mat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(cv), transparent: true, side: THREE.DoubleSide });
+        var mesh = new THREE.Mesh(new THREE.PlaneGeometry(6, 3), mat);
+        var baseY = 2.5;
+        mesh.position.set(pd.x, baseY, pd.z);
+
+        var glow = new THREE.PointLight(pd.c, 0.5, 10);
+        mesh.add(glow);
+
+        scene.add(mesh);
+        floatingPanels.push({ mesh: mesh, baseY: baseY, offset: i });
+      });
+    }
+
+    /* --- AI COMMAND CENTER --- */
+    function createAiCenter() {
+      var x = 0, z = -35, w = 18, h = 45, d = 18;
+      var mat = stdMat(0x1a0033, 0x330066);
+
+      var body = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+      body.position.set(x, h / 2, z);
+      body.castShadow = true;
+      scene.add(body);
+
+      var fr = neonEdges(new THREE.BoxGeometry(w, h, d), 0xbb00ff);
+      fr.position.copy(body.position);
+      scene.add(fr);
+
+      var core = new THREE.Mesh(
+        new THREE.SphereGeometry(6, 16, 16),
+        new THREE.MeshStandardMaterial({ color: 0x5500aa, emissive: 0xaa00ff, emissiveIntensity: 1.5, wireframe: true })
+      );
+      core.position.set(x, h + 6, z);
+      scene.add(core);
+
+      var light = addPointLight(0xbb00ff, 4, 50, x, h + 6, z);
+
+      makeLabel('AI COMMAND CENTER', '#bb00ff', x, h + 15, z);
+      regBuilding('AI COMMAND CENTER', x, z, w, h, d, BUILDING_DATA.ai);
+      buildings[buildings.length - 1].anim = { core: core, light: light };
+    }
+
+    /* --- POLOS EVOLUTIVOS (Fábrica) --- */
+    function createEvolutionaryBuilding(name, x, z, dataKey) {
+      var w = 12, h = 30, d = 12;
+      var color = '#aaaaaa';
+
+      // Estrutura wireframe simbolizando "em construção"
+      var geo = new THREE.BoxGeometry(w, h, d);
+      var mat = new THREE.MeshBasicMaterial({ color: 0x444444, wireframe: true, transparent: true, opacity: 0.3, depthWrite: false });
+      var mesh = new THREE.Mesh(geo, mat);
+      mesh.position.set(x, h / 2, z);
+      scene.add(mesh);
+
+      // Pilares holograficos nos cantos
+      var fr = neonEdges(geo, 0x555555);
+      fr.position.copy(mesh.position);
+      fr.scale.set(1.02, 1.02, 1.02); // Evita o z-fighting (bug visual de sobreposição)
+      scene.add(fr);
+
+      // Base solida pequena
+      var base = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 2, d + 1), stdMat(0x111111, 0x000000));
+      base.position.set(x, 1, z);
+      scene.add(base);
+
+      makeLabel(name, color, x, h + 5, z);
+      regBuilding(name, x, z, w, h, d, BUILDING_DATA[dataKey]);
+    }
+
+    function createEvolutionaryBuildings() {
+      createEvolutionaryBuilding('FORMS FACTORY', -100, -20, 'b1');
+      createEvolutionaryBuilding('MEDIA MUSEUM', 100, -20, 'b2');
+      createEvolutionaryBuilding('TYPOGRAPHY TEMPLE', -100, 32, 'b3');
+      createEvolutionaryBuilding('ANIMATION ALLEY', 100, 32, 'b4');
+      createEvolutionaryBuilding('DOM DOMAIN', -40, -80, 'b5');
+      createEvolutionaryBuilding('ARRAY ARCADE', 40, -80, 'b6');
+      //createEvolutionaryBuilding('STORAGE STATION', -40, 90, 'b7');
+      createEvolutionaryBuilding('CANVAS COLISEUM', 40, 90, 'b8');
+      createEvolutionaryBuilding('UI/UX HUB', -80, 70, 'b9');
+      createEvolutionaryBuilding('MOBILE MARKET', 80, 70, 'b10');
+    }
+
+    // Registra edificio nos arrays globais
+    function regBuilding(name, x, z, w, h, d, content) {
+      buildings.push({ name: name, x: x, z: z, content: content });
+      colliders.push({ x: x, z: z, r: Math.max(w, d) / 2 + 2 });
+    }
+
+//====> STORAGE STATION
+    function createStorageStation(){
+      var x = -40, z = 105, w = 50, h = 100, d = 50;
+      var mat = stdMat(0x001833, 0x002266);
+
+      //corpo
+  var bodyGeo = new THREE.BoxGeometry(w, h, d);
+      var body = new THREE.Mesh(bodyGeo, mat);
+      body.position.set(x, h / 2, z);
+      body.castShadow = true;
+      scene.add(body);
+      var frame = neonEdges(bodyGeo, 0x0055ff);
+      frame.position.copy(body.position);
+      scene.add(frame);
+
+      // paineis
+      var panelColors = [0xfff, 0x0fff, 0xfff, 0xfff];
+      var animPanels = [];
+      panelColors.forEach(function (c, i) {
+        var ang = i * Math.PI / 2;
+        var pGeo = new THREE.BoxGeometry(4.5, h * 0.3, 45);
+        var p = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.8, side: THREE.DoubleSide }));
+        p.position.set(x + Math.cos(ang) * (w / 2 + 2), h * 0.4, z + Math.sin(ang) * (w / 2 + 2));
+        p.rotation.y = ang;
+        scene.add(p);
+        animPanels.push(p);
+      });
+
+      // paineis superior definido a altura no position.set "h* 0.77" ou seja, é pego o total da altura (h) e dividido por 0.77 que o coloca nos 77% da dimensão do prédio
+      var panelColors = [0xfff, 0x0fff, 0xfff, 0xfff];
+      var animPanels = [];
+      panelColors.forEach(function (c, i) {
+        var ang = i * Math.PI / 2;
+        var pGeo = new THREE.BoxGeometry(4.5, h * 0.3, 45);
+        var p = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.8, side: THREE.DoubleSide }));
+        p.position.set(x + Math.cos(ang) * (w / 2 + 2), h * 0.77, z + Math.sin(ang) * (w / 2 + 2));
+        p.rotation.y = ang;
+        scene.add(p);
+        animPanels.push(p);
+      });
+
+      //PORTAL DE ENTRADA
+      var px = -38, pz = 80;
+      var pMat = new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0044aa, emissiveIntensity: 0.7, metalness: 0.9 });
+      var pGeo = new THREE.BoxGeometry(3.5, 22, 3.5);
+
+      var lp = new THREE.Mesh(pGeo, pMat); lp.position.set(px - 11, -1, pz); lp.castShadow = true; scene.add(lp);
+      var rp = new THREE.Mesh(pGeo, pMat); rp.position.set(px + 11, -1, pz); rp.castShadow = true; scene.add(rp);
+      var arch = new THREE.Mesh(
+        new THREE.BoxGeometry(26, 2.5, 3.5),
+        new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0066ff, emissiveIntensity: 1.5 })
+      );
+      arch.position.set(px, 11, pz);
+      scene.add(arch);
+      var entrada = new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0044aa, emissiveIntensity: 0.7, metalness: 0.9 });
+      
+      // ============================================================
+      // ESCADA DO STORAGE STATION (Solo para Subsolo)
+      // ============================================================
+      var ladderGeo = new THREE.BoxGeometry(20, 60, 2);
+      var ladderMat = new THREE.MeshPhongMaterial({
+        color: 0xfff, // Ciano Neon futurista igual aos hologramas
+        wireframe: false,
+        
+      });
+      var ladderMesh = new THREE.Mesh(ladderGeo, ladderMat);
+      
+      // Ligando o chão (1.7) ao subsolo (-21.7)
+      ladderMesh.position.set(-40, -22, 110); 
+      ladderMesh.rotation.x = Math.PI / -4.5; // Inclinação da descida
+      scene.add(ladderMesh);
+
+      // ============================================================
+      // CONSOLE INTERATIVO DO SUBSOLO (Abaixo do Storage Station)
+      // ============================================================
+      var subsoloConsoleGeo = new THREE.CylinderGeometry(2, 2.5, 1.5, 16);
+      var subsoloConsoleMat = new THREE.MeshPhongMaterial({
+        color: 0x0099ff, // Mesma cor azul do StorageStation
+        emissive: 0x002255,
+        shininess: 100
+      });
+      var subsoloConsoleMesh = new THREE.Mesh(subsoloConsoleGeo, subsoloConsoleMat);
+      
+      subsoloConsoleMesh.position.set(-40, -30, 187); 
+      scene.add(subsoloConsoleMesh);
+
+      // Cadastra o objeto na lista global para que a tecla [E] funcione com o HUD
+      buildings.push({
+        name: 'STORAGE STATION (SUBSOLO)',
+        x: -40,
+        z: 187,
+        y: -31.5, // Altura específica do subsolo
+        content: {
+        title: 'STORAGE STATION: BACKUP & DATA',
+        sub: 'Cofre da Web - Setor de Armazenamento',
+        color: '#ebff00',
+        icon: '💾',
+        // Adicione aqui dentro do array as seções informativas que você deseja exibir na tela
+        sections: [
+          {
+          tag: 'Counting Clicks with sessionStorage',
+          lbl: 'Contagem de cliques com armazenamento local',
+          desc: 'O exemplo a seguir conta quantas vezes um usuário clicou em um botão. Neste código, a string de valor é convertida em um número para que o contador possa ser incrementado:',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
+          {
+          tag: 'window.localStorage',
+          lbl: 'Armazenamento Local',
+          desc: 'Armazena dados sem data de expiracao. Os dados permanecem salvos mesmo apos fechar a aba ou o navegador, e ficam disponiveis no dia seguinte, semana ou ano depois.',
+          ex: '// Salvar\nlocalStorage.setItem("lastname", "Smith");\nlocalStorage.setItem("bgcolor", "yellow");\n\n// Recuperar\nconst nome = localStorage.getItem("lastname");\n\n// Remover\nlocalStorage.removeItem("lastname");'
+          },
+          {
+          tag: 'window.sessionStorage',
+          lbl: 'Armazenamento de Sessao',
+          desc: 'Funciona igual ao localStorage, mas armazena os dados apenas durante a sessao atual. Os dados sao apagados quando o usuario fecha a aba especifica do navegador.',
+          ex: 'function clickCounter() {\n  if (sessionStorage.clickcount) {\n    sessionStorage.clickcount =\n      Number(sessionStorage.clickcount) + 1;\n  } else {\n    sessionStorage.clickcount = 1;\n  }\n}'
+          },
+          {
+          tag: 'typeof(Storage)',
+          lbl: 'Verificacao de Suporte',
+          desc: 'Testa se o navegador suporta a Web Storage API antes de usa-la. Evita erros em navegadores muito antigos que nao implementam o recurso.',
+          ex: 'if (typeof(Storage) !== "undefined") {\n  // navegador suporta\n  // Web Storage\n} else {\n  // sem suporte\n}'
+          },
+          {
+          tag: 'setItem() / getItem()',
+          lbl: 'Salvar e Ler Pares',
+          desc: 'Metodos centrais da API: setItem() cria um par chave/valor, e getItem() recupera o valor pela chave. Funcionam de forma idêntica em localStorage e sessionStorage.',
+          ex: 'localStorage.setItem("chave", "valor");\nconst v = localStorage.getItem("chave");'
+          },
+          {
+      tag: 'Boas Práticas',
+      lbl: 'Segurança e Utilização',
+      desc: 'A Web Storage API não deve ser utilizada para armazenar informações sensíveis, como senhas, tokens de autenticação ou dados bancários. Seu uso é recomendado para preferências do usuário, configurações da interface e dados temporários.',
+      ex: '// Recomendado\nlocalStorage.setItem("tema", "escuro");\n\n// Não recomendado\n// localStorage.setItem("senha", "123456");'
+          },
+        ]
+        }
+      });
+
+      // Adiciona o colisor físico para o jogador não atravessar o console no escuro
+      colliders.push({
+        x: -40,
+        z: 187,
+        r: 3
+      });
+      //esfera
+    /*   var dome = new THREE.Mesh(
+        new THREE.SphereGeometry(4,4,4,4),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0x00dd66, emissiveIntensity: 0.6, transparent: true, opacity: 0.85 })
+      );
+      dome.position.set(-40, -23, 187);
+      scene.add(dome); */
+    }
+
+//aqui estão os objetos que compõem "Subsolo"    
+      function createSubsolo() {
+      createSubsoloParedes();
+      createSubsoloServidores();
+//outras adicionar aqui^^^^^^
+      }
+
+// AUI COMEÇAM AS PAREDES DO SUBSOLO
+// underground começa em (-40, -30, 155);
+function createSubsoloParedes() {
+  var cx = -40, cz = 150; // centro do subsolo
+  var largura = 80, profundidade = 60, altura = 30;
+  var y = -30 + altura / 2; // base no chão do subsolo
+
+  var wallMat = new THREE.MeshBasicMaterial({
+    color: 0x300073,
+    emissive: 0x001133,
+    emissiveIntensity: 0.3,
+    roughness: 0.8
+  });
+  //parede frente
+  var wS2 = new THREE.Mesh(new THREE.BoxGeometry(150, altura, 1), wallMat);
+  wS2.position.set(-40, y, 200);
+  scene.add(wS2);
+
+  // Parede OESTE (direita)
+  var wO = new THREE.Mesh(new THREE.BoxGeometry(1, altura, 150), wallMat);
+  wO.position.set(-115 , y, 150);
+  scene.add(wO);
+
+  // Parede LESTE (esquerda)
+  var wL = new THREE.Mesh(new THREE.BoxGeometry(1, altura, 150), wallMat);
+  wL.position.set(35, y,150);
+  scene.add(wL);
+}
+
+// OCTAGONOS
+  function createSubsoloServidores() {
+  var mat = new THREE.MeshStandardMaterial({ color: 0x003355, emissive: 0x0066aa, emissiveIntensity: 0.8, metalness: 0.9 });
+
+ //����������
+// Servidores  canto direto S1 -> S2 -> S3
+//����������
+
+var s1 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s1.position.set(-105, -27, 187);
+  scene.add(s1);
+  addPointLight(0x0088ff, 1.5, 15, -105, -27, 187);
+  makeLabel('SERVIDOR', '#0088ff', -105, -27, 187);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(-105, -19, 187);
+      scene.add(core);
+
+var s2 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s2.position.set(-105, -27, 160);
+  scene.add(s2);
+  addPointLight(0x0088ff, 1.5, 15, -105, -27, 160);
+  makeLabel('SERVIDOR', '#0088ff', -105, -27, 160);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(-105, -19, 160);
+      scene.add(core);
+
+var s3 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s3.position.set(-105, -27, 133);
+  scene.add(s3);
+  addPointLight(0x0088ff, 1.5, 15, -105, -27, 133);
+  makeLabel('SERVIDOR', '#0088ff', -105, -27, 133);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(-105, -19, 133);
+      scene.add(core);
+
+//��������������������������
+// Servidores  canto ESQUERDO S4 -> S5 -> S6  ||
+//��������������������������
+  
+var s4 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s4.position.set(25, -27, 187);
+  scene.add(s4);
+  addPointLight(0x0088ff, 1.5, 15, 25, -27, 187);
+  makeLabel('SERVIDOR', '#0088ff', 25, -27, 187);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(25, -19, 187);
+      scene.add(core);
+
+var s5 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s5.position.set(25, -27, 160);
+  scene.add(s5);
+  addPointLight(0x0088ff, 1.5, 15, 25, -27, 160);
+  makeLabel('SERVIDOR', '#0088ff', 25, -27, 160);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(25, -19, 160);
+      scene.add(core);
+
+var s6 = new THREE.Mesh(new THREE.CylinderGeometry(8, 8, 8, 8), mat);
+  s6.position.set(25, -27, 133);
+  scene.add(s6);
+  addPointLight(0x0088ff, 1.5, 15, 25, -27, 133);
+  makeLabel('SERVIDOR', '#0088ff', 25, -27, 133);
+  //hexagono de decoração
+  var core = new THREE.Mesh(
+        new THREE.SphereGeometry(-3, -3, 3),
+        new THREE.MeshBasicMaterial({ color: 0xebff00, emissive: 0xfff, emissiveIntensity: 2.5, shininess:1.5, wireframe: false })
+      );
+      core.position.set(25, -19, 133);
+      scene.add(core);
+
+// Colisores S1 até S6 em diante
+  colliders.push({ x: -105, z: 187, r: 8 }); //s1
+  colliders.push({ x: -105, z: 160, r: 8 }); //s2
+  colliders.push({ x: -105, z: 133, r: 8 }); //s3
+  colliders.push({ x: 25, z: 187, r: 8 });   //s4
+  colliders.push({ x: 25, z: 160, r: 8 });   //s5
+  colliders.push({ x: 25, z: 133, r: 8 });   //s6
+
+  /* colliders.push({ x: -65, z: 168, r: 6 }); */
+
+
+
+
+}
+
+/* 
+[]  ⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️ COLA da IA ⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️⤵️
+
+      function createSubsolo() {
+      createSubsoloParedes();
+      createSubsoloSalaAnexa();
+      createSubsoloPortal();
+      createSubsoloServidores();
+      createSubsoloInterativos();
+    }
+
+
+
+  var wS2 = new THREE.Mesh(new THREE.BoxGeometry(20, altura, 1), wallMat);
+  wS2.position.set(cx + 25, y, cz + profundidade / 2);
+  scene.add(wS2);
+  // O espaço no meio (~20 unidades) é a abertura "PASSE ENTRADA"
+
+  // Parede OESTE (esquerda)
+  var wO = new THREE.Mesh(new THREE.BoxGeometry(1, altura, profundidade), wallMat);
+  wO.position.set(cx - largura / 2, y, cz);
+  scene.add(wO);
+
+  // Parede LESTE (divide sala principal da sala anexa)
+  var wL = new THREE.Mesh(new THREE.BoxGeometry(1, altura, profundidade), wallMat);
+  wL.position.set(cx + largura / 2, y, cz);
+  scene.add(wL);
+
+  // Corte diagonal no canto inferior esquerdo (tampa o ângulo)
+  var wDiag = new THREE.Mesh(new THREE.BoxGeometry(20, altura, 1), wallMat);
+  wDiag.position.set(cx - largura / 2 + 8, y, cz + profundidade / 2 - 8);
+  wDiag.rotation.y = Math.PI / 4; // 45 graus
+  scene.add(wDiag);
+}
+
+//SALA 2
+function createSubsoloSalaAnexa() {
+  var cx = -40, cz = 150;
+  var altura = 8;
+  var y = -30 + altura / 2;
+  var wallMat = new THREE.MeshStandardMaterial({ color: 0x112233, emissive: 0x001133, emissiveIntensity: 0.3 });
+  var pilarMat = new THREE.MeshStandardMaterial({ color: 0x0033aa, emissive: 0x0055ff, emissiveIntensity: 0.5, metalness: 0.8 });
+
+  // Parede externa direita da sala anexa
+  var wExt = new THREE.Mesh(new THREE.BoxGeometry(1, altura, 60), wallMat);
+  wExt.position.set(cx + 80 / 2 + 30, y, cz);
+  scene.add(wExt);
+
+  // Paredes norte e sul da sala anexa
+  var wAN = new THREE.Mesh(new THREE.BoxGeometry(30, altura, 1), wallMat);
+  wAN.position.set(cx + 80 / 2 + 15, y, cz - 30);
+  scene.add(wAN);
+
+  var wAS = new THREE.Mesh(new THREE.BoxGeometry(30, altura, 1), wallMat);
+  wAS.position.set(cx + 80 / 2 + 15, y, cz + 30);
+  scene.add(wAS);
+
+  // 4 pilares em fileira vertical (visto de cima = coluna no eixo Z)
+  for (var i = 0; i < 4; i++) {
+    var pilar = new THREE.Mesh(
+      new THREE.CylinderGeometry(1, 1, altura, 8),
+      pilarMat
+    );
+    pilar.position.set(cx + 80 / 2 + 15, y, cz - 20 + i * 14);
+    scene.add(pilar);
+
+    // Luz em cada pilar
+    addPointLight(0x0055ff, 0.8, 12, cx + 80 / 2 + 15, -30 + altura, cz - 20 + i * 14);
+  }
+}
+
+// OCTAGONOS
+function createSubsoloServidores() {
+  var mat = new THREE.MeshStandardMaterial({ color: 0x003355, emissive: 0x0066aa, emissiveIntensity: 0.8, metalness: 0.9 });
+
+  // Servidor canto superior esquerdo
+  var s1 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 6, 8), mat);
+  s1.position.set(-65, -30 + 3, 125);
+  scene.add(s1);
+  addPointLight(0x0088ff, 1.5, 15, -65, -24, 125);
+  makeLabel('SERVIDOR', '#0088ff', -65, -24 + 3, 125);
+
+  // Servidor canto inferior esquerdo
+  var s2 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 6, 8), mat);
+  s2.position.set(-65, -30 + 3, 168);
+  scene.add(s2);
+  addPointLight(0x0088ff, 1.5, 15, -65, -24, 168);
+  makeLabel('SERVIDOR', '#0088ff', -65, -24 + 3, 168);
+
+  // Colisores
+  colliders.push({ x: -65, z: 125, r: 6 });
+  colliders.push({ x: -65, z: 168, r: 6 });
+}
+
+//ESFERA RgB
+function createSubsoloInterativos() {
+  // Esfera RGB (centro inferior)
+  var esfera = new THREE.Mesh(
+    new THREE.SphereGeometry(4, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1.5 })
+  );
+  esfera.position.set(-30, -30 + 4, 168);
+  scene.add(esfera);
+  addPointLight(0xff0000, 2, 20, -30, -26, 168);
+  makeLabel('ESFERA RGB', '#ff4444', -30, -22, 168);
+
+  // Interruptor modo escuro (círculo/botão na parede)
+  var interruptor = new THREE.Mesh(
+    new THREE.CylinderGeometry(2, 2, 0.5, 16),
+    new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xffff00, emissiveIntensity: 2 })
+  );
+  interruptor.position.set(-15, -30 + 3, 130);
+  interruptor.rotation.x = Math.PI / 2; // deitado na parede
+  scene.add(interruptor);
+  addPointLight(0xffff00, 1.5, 12, -15, -27, 130);
+  makeLabel('MODO ESCURO', '#ffff00', -15, -22, 130);
+}
+
+function createSubsoloPortal() {
+  var px = -40 + 10, pz = 150 + 30; // posição na abertura sul
+  var altura = 8;
+  var y = -30 + altura / 2;
+  var portaMat = new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0066ff, emissiveIntensity: 1.2, metalness: 0.9 });
+
+  // Batente esquerdo
+  var b1 = new THREE.Mesh(new THREE.BoxGeometry(1.5, altura, 1.5), portaMat);
+  b1.position.set(px - 5, y, pz);
+  scene.add(b1);
+
+  // Batente direito
+  var b2 = new THREE.Mesh(new THREE.BoxGeometry(1.5, altura, 1.5), portaMat);
+  b2.position.set(px + 5, y, pz);
+  scene.add(b2);
+
+  // Verga (topo do portal)
+  var verga = new THREE.Mesh(new THREE.BoxGeometry(12, 1, 1.5), portaMat);
+  verga.position.set(px, -30 + altura, pz);
+  scene.add(verga);
+
+  // Label "PASSE ENTRADA"
+  makeLabel('PASSE ENTRADA', '#00f5ff', px, -30 + altura + 3, pz);
+
+  // Campo de energia (plano semitransparente)
+  var campo = new THREE.Mesh(
+    new THREE.PlaneGeometry(10, altura),
+    new THREE.MeshStandardMaterial({ color: 0x001166, emissive: 0x0044ff, emissiveIntensity: 0.5, transparent: true, opacity: 0.2, side: THREE.DoubleSide })
+  );
+  campo.position.set(px, y, pz);
+  scene.add(campo);
+}
+
+function createSubsoloServidores() {
+  var mat = new THREE.MeshStandardMaterial({ color: 0x003355, emissive: 0x0066aa, emissiveIntensity: 0.8, metalness: 0.9 });
+
+  // Servidor canto superior esquerdo
+  var s1 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 6, 8), mat);
+  s1.position.set(-65, -30 + 3, 125);
+  scene.add(s1);
+  addPointLight(0x0088ff, 1.5, 15, -65, -24, 125);
+  makeLabel('SERVIDOR', '#0088ff', -65, -24 + 3, 125);
+
+  // Servidor canto inferior esquerdo
+  var s2 = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 6, 8), mat);
+  s2.position.set(-65, -30 + 3, 168);
+  scene.add(s2);
+  addPointLight(0x0088ff, 1.5, 15, -65, -24, 168);
+  makeLabel('SERVIDOR', '#0088ff', -65, -24 + 3, 168);
+
+  // Colisores
+  colliders.push({ x: -65, z: 125, r: 6 });
+  colliders.push({ x: -65, z: 168, r: 6 });
+}
+
+function createSubsoloInterativos() {
+  // Esfera RGB (centro inferior)
+  var esfera = new THREE.Mesh(
+    new THREE.SphereGeometry(4, 16, 16),
+    new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff0000, emissiveIntensity: 1.5 })
+  );
+  esfera.position.set(-30, -30 + 4, 168);
+  scene.add(esfera);
+  addPointLight(0xff0000, 2, 20, -30, -26, 168);
+  makeLabel('ESFERA RGB', '#ff4444', -30, -22, 168);
+
+  // Interruptor modo escuro (círculo/botão na parede)
+  var interruptor = new THREE.Mesh(
+    new THREE.CylinderGeometry(2, 2, 0.5, 16),
+    new THREE.MeshStandardMaterial({ color: 0xffff00, emissive: 0xffff00, emissiveIntensity: 2 })
+  );
+  interruptor.position.set(-15, -30 + 3, 130);
+  interruptor.rotation.x = Math.PI / 2; // deitado na parede
+  scene.add(interruptor);
+  addPointLight(0xffff00, 1.5, 12, -15, -27, 130);
+  makeLabel('MODO ESCURO', '#ffff00', -15, -22, 130);
+}
+ */
+
+    /* --- HTML TOWER --- */
+    function createHtmlTower() {
+      var x = -40, z = -20, w = 12, h = 60, d = 12;
+      var mat = stdMat(0x001833, 0x002266);
+
+      // Corpo principal
+      var bodyGeo = new THREE.BoxGeometry(w, h, d);
+      var body = new THREE.Mesh(bodyGeo, mat);
+      body.position.set(x, h / 2, z);
+      body.castShadow = true;
+      scene.add(body);
+      var frame = neonEdges(bodyGeo, 0x0055ff);
+      frame.position.copy(body.position);
+      scene.add(frame);
+
+      // Topo piramidal
+      var topGeo = new THREE.ConeGeometry(w * 0.55, 14, 4);
+      var top = new THREE.Mesh(topGeo, new THREE.MeshStandardMaterial({ color: 0x001155, emissive: 0x0044ff, emissiveIntensity: 1.2 }));
+      top.position.set(x, h + 7, z);
+      top.rotation.y = Math.PI / 4;
+      scene.add(top);
+
+      // Aneis decorativos
+      var animRings = [];
+      for (var i = 1; i <= 4; i++) {
+        var rGeo = new THREE.TorusGeometry(w * 0.75, 0.18, 8, 32);
+        var ring = new THREE.Mesh(rGeo, new THREE.MeshStandardMaterial({ color: 0x0066ff, emissive: 0x0066ff, emissiveIntensity: 1.5 }));
+        ring.position.set(x, (h * 0.85) / 4 * i, z);
+        ring.rotation.x = Math.PI / 2;
+        scene.add(ring);
+        animRings.push(ring);
+      }
+
+      // Janelas
+      var wMat = new THREE.MeshStandardMaterial({ color: 0x001a44, emissive: 0x0044bb, emissiveIntensity: 0.9 });
+      for (var r = 0; r < 9; r++) {
+        for (var c = 0; c < 3; c++) {
+          if (Math.random() < 0.35) continue;
+          var win = new THREE.Mesh(new THREE.BoxGeometry((w - 1) / 3 * 0.6, (h - 8) / 9 * 0.55, 0.15), wMat);
+          win.position.set(x - w / 2 + (c + 0.5) * (w - 1) / 3 + 0.5, 4 + (r + 0.5) * (h - 8) / 9, z + d / 2 + 0.08);
+          scene.add(win);
+        }
+      }
+
+      makeLabel('HTML TOWER', '#0099ff', x, h / 2 + h / 2 + 7, z);
+      var basePt = addPointLight(0x0066ff, 3, 35, x, 4, z);
+      regBuilding('HTML TOWER', x, z, w, h, d, BUILDING_DATA.html);
+
+      // Animacao (referencia global)
+      buildings[buildings.length - 1].anim = { rings: animRings, basePt: basePt };
+    }
+
+    /* --- CSS LAB --- */
+    function createCssLab() {
+      var x = 40, z = -20, w = 18, h = 42, d = 18;
+
+      // Base
+      var baseGeo = new THREE.BoxGeometry(w, h * 0.65, w);
+      var baseMesh = new THREE.Mesh(baseGeo, stdMat(0x1a0033, 0x5500aa, 0.5));
+      baseMesh.position.set(x, h * 0.65 / 2, z);
+      baseMesh.castShadow = true;
+      scene.add(baseMesh);
+      var bf = neonEdges(baseGeo, 0xcc00ff);
+      bf.position.copy(baseMesh.position);
+      scene.add(bf);
+
+      // Torre superior
+      var topGeo = new THREE.BoxGeometry(w * 0.55, h * 0.45, w * 0.55);
+      var topMesh = new THREE.Mesh(topGeo, stdMat(0x110022, 0x7700cc, 0.6));
+      topMesh.position.set(x, h * 0.65 + h * 0.45 / 2, z);
+      scene.add(topMesh);
+
+      // Paineis coloridos laterais
+      var panelColors = [0xff00ff, 0x00ffff, 0xff6600, 0x00ff44];
+      var animPanels = [];
+      panelColors.forEach(function (c, i) {
+        var ang = i * Math.PI / 2;
+        var pGeo = new THREE.BoxGeometry(3.5, h * 0.35, 0.3);
+        var p = new THREE.Mesh(pGeo, new THREE.MeshStandardMaterial({ color: c, emissive: c, emissiveIntensity: 0.8, side: THREE.DoubleSide }));
+        p.position.set(x + Math.cos(ang) * (w / 2 + 2), h * 0.33, z + Math.sin(ang) * (w / 2 + 2));
+        p.rotation.y = -ang;
+        scene.add(p);
+        animPanels.push(p);
+      });
+
+      // Esfera no topo
+      var sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 12),
+        new THREE.MeshStandardMaterial({ color: 0xcc00ff, emissive: 0xff00ff, emissiveIntensity: 2 }));
+      sphere.position.set(x, h + 8.5, z);
+      scene.add(sphere);
+
+      makeLabel('CSS LAB', '#cc00ff', x, h / 2 + h / 2 + 7, z);
+      var basePt = addPointLight(0xcc00ff, 3, 40, x, 5, z);
+      regBuilding('CSS LAB', x, z, w, h, d, BUILDING_DATA.css);
+      buildings[buildings.length - 1].anim = { panels: animPanels, sphere: sphere, basePt: basePt };
+    }
+
+    /* --- JS ARENA --- */
+    function createJsArena() {
+      var x = -40, z = 32, radius = 13, h = 5;
+
+      // Anel base
+      var ringMesh = new THREE.Mesh(
+        new THREE.CylinderGeometry(radius, radius + 2.5, h, 24),
+        stdMat(0x111100, 0x333300, 0.25)
+      );
+      ringMesh.position.set(x, h / 2, z);
+      ringMesh.castShadow = true;
+      scene.add(ringMesh);
+
+      // Borda neon torus
+      var edgeTorus = new THREE.Mesh(
+        new THREE.TorusGeometry(radius + 1.25, 0.4, 8, 48),
+        new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2 })
+      );
+      edgeTorus.position.set(x, h + 0.2, z);
+      edgeTorus.rotation.x = Math.PI / 2;
+      scene.add(edgeTorus);
+
+      // Cupula
+      var domeGeo = new THREE.SphereGeometry(radius * 0.58, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2);
+      var domeMesh = new THREE.Mesh(domeGeo, stdMat(0x111100, 0x666600, 0.5));
+      domeMesh.position.set(x, h, z);
+      scene.add(domeMesh);
+      var domeWire = new THREE.Mesh(
+        new THREE.SphereGeometry(radius * 0.59, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true })
+      );
+      domeWire.position.set(x, h, z);
+      scene.add(domeWire);
+
+      // Torres laterais
+      var towerAngles = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
+      var towerLights = [];
+      towerAngles.forEach(function (ang, i) {
+        var tx = x + Math.cos(ang) * radius * 0.75, tz = z + Math.sin(ang) * radius * 0.75;
+        var th = 12 + i * 2;
+        var t = new THREE.Mesh(new THREE.BoxGeometry(3, th, 3), stdMat(0x181800, 0xffaa00, 0.35));
+        t.position.set(tx, th / 2, tz);
+        scene.add(t);
+        towerLights.push(addPointLight(0xffcc00, 1.5, 15, tx, th + 1, tz));
+      });
+
+      makeLabel('JS ARENA', '#ffcc00', x, radius * 0.58 + h + 10, z);
+      var basePt = addPointLight(0xffcc00, 4, 45, x, 10, z);
+      regBuilding('JS ARENA', x, z, radius * 2 + 5, 22, radius * 2 + 5, BUILDING_DATA.js);
+      buildings[buildings.length - 1].anim = { domeWire: domeWire, edge: edgeTorus, tLights: towerLights, basePt: basePt };
+    }
+
+    /* --- BOOTSTRAP DISTRICT --- */
+    function createBootstrapDistrict() {
+      var x = 42, z = 32;
+      var blocks = [
+        { ox: -13, w: 9, h: 34, d: 16, emissive: 0x440099 },
+        { ox: 0, w: 11, h: 22, d: 16, emissive: 0x5500cc },
+        { ox: 14, w: 9, h: 42, d: 16, emissive: 0x6600dd }
+      ];
+
+      blocks.forEach(function (b) {
+        var geo = new THREE.BoxGeometry(b.w, b.h, b.d);
+        var mesh = new THREE.Mesh(geo, stdMat(0x0e0028, b.emissive, 0.5));
+        mesh.position.set(x + b.ox, b.h / 2, z);
+        mesh.castShadow = true;
+        scene.add(mesh);
+        var fr = neonEdges(geo, 0x8833ff);
+        fr.position.copy(mesh.position);
+        scene.add(fr);
+      });
+
+      // Barras de conexao (rows do Bootstrap)
+      var animBars = [];
+      for (var y = 5; y <= 22; y += 5) {
+        var bar = new THREE.Mesh(
+          new THREE.BoxGeometry(34, 0.6, 1.5),
+          new THREE.MeshStandardMaterial({ color: 0x7700ff, emissive: 0x8800ff, emissiveIntensity: 1.2 })
+        );
+        bar.position.set(x, y, z - 7);
+        scene.add(bar);
+        animBars.push(bar);
+      }
+
+      makeLabel('BOOTSTRAP', '#9933ff', x, 42 / 2 + 42 / 2 + 7, z);
+      var basePt = addPointLight(0x8800ff, 4, 50, x, 8, z);
+      regBuilding('BOOTSTRAP DISTRICT', x, z, 36, 42, 16, BUILDING_DATA.bs);
+      buildings[buildings.length - 1].anim = { bars: animBars, basePt: basePt };
+    }
+
+    /* --- ACCESSIBILITY CENTER --- */
+    function createA11yCenter() {
+      var x = 0, z = 58, w = 24, h = 30, d = 24;
+
+      // Corpo
+      var bodyGeo = new THREE.BoxGeometry(w, h, d);
+      var body = new THREE.Mesh(bodyGeo, stdMat(0x051510, 0x003322, 0.35));
+      body.position.set(x, h / 2, z);
+      body.castShadow = true;
+      scene.add(body);
+      var fr = neonEdges(bodyGeo, 0x00ff88);
+      fr.position.copy(body.position);
+      scene.add(fr);
+
+      // Disco frontal
+      var disc = new THREE.Mesh(
+        new THREE.CylinderGeometry(7, 7, 0.5, 32),
+        new THREE.MeshStandardMaterial({ color: 0x004422, emissive: 0x00ff88, emissiveIntensity: 0.8 })
+      );
+      disc.position.set(x, h / 2, z - d / 2 - 0.3);
+      disc.rotation.x = Math.PI / 2;
+      scene.add(disc);
+
+      // Faixas horizontais verdes
+      for (var i = 0; i < 6; i++) {
+        var stripe = new THREE.Mesh(
+          new THREE.BoxGeometry(w + 3, 0.5, 0.5),
+          new THREE.MeshStandardMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1.5 })
+        );
+        stripe.position.set(x, 4 + i * 5, z - d / 2);
+        scene.add(stripe);
+      }
+
+      // Cupula no topo
+      var dome = new THREE.Mesh(
+        new THREE.SphereGeometry(w / 2 * 0.7, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
+        new THREE.MeshStandardMaterial({ color: 0x003311, emissive: 0x00dd66, emissiveIntensity: 0.6, transparent: true, opacity: 0.85 })
+      );
+      dome.position.set(x, h, z);
+      scene.add(dome);
+
+      makeLabel('A11Y CENTER', '#00ff88', x, h / 2 + h / 2 + 7, z);
+      var basePt = addPointLight(0x00ff88, 4, 50, x, 8, z);
+      regBuilding('ACCESSIBILITY CENTER', x, z, w, h, d, BUILDING_DATA.a11y);
+      buildings[buildings.length - 1].anim = { disc: disc, dome: dome, basePt: basePt };
+    }
+
+    /* --- PORTAL PROJEÇÃO --- */
+    function createPortal() {
+      var px = 0, pz = -72;
+      var pMat = new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0044aa, emissiveIntensity: 0.7, metalness: 0.9 });
+      var pGeo = new THREE.BoxGeometry(3.5, 22, 3.5);
+
+      var lp = new THREE.Mesh(pGeo, pMat); lp.position.set(px - 11, 11, pz); lp.castShadow = true; scene.add(lp);
+      var rp = new THREE.Mesh(pGeo, pMat); rp.position.set(px + 11, 11, pz); rp.castShadow = true; scene.add(rp);
+      var arch = new THREE.Mesh(
+        new THREE.BoxGeometry(26, 2.5, 3.5),
+        new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x0066ff, emissiveIntensity: 1.5 })
+      );
+      arch.position.set(px, 22, pz);
+      scene.add(arch);
+
+      // Campo de energia
+      var field = new THREE.Mesh(
+        new THREE.PlaneGeometry(20, 20),
+        new THREE.MeshStandardMaterial({ color: 0x000044, emissive: 0x002299, emissiveIntensity: 0.4, transparent: true, opacity: 0.3, side: THREE.DoubleSide })
+      );
+      field.position.set(px, 11, pz);
+      scene.add(field);
+
+      addPointLight(0x0066ff, 4, 30, px - 11, 18, pz);
+      addPointLight(0x0066ff, 4, 30, px + 11, 18, pz);
+
+      // Sprite com titulo
+      var cv = document.createElement('canvas');
+      cv.width = 1024; cv.height = 200;
+      var ctx = cv.getContext('2d');
+      ctx.clearRect(0, 0, 1024, 200);
+      ctx.font = 'bold 64px Orbitron, monospace';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = ctx.fillStyle = '#00f5ff';
+      ctx.shadowBlur = 30;
+      ctx.fillText('PORTAL PROJEÇÃO', 512, 130);
+      var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(cv), transparent: true }));
+      sp.scale.set(52, 10, 1);
+      sp.position.set(px, 30, pz);
+      scene.add(sp);
+    }
+
+    /* --- PRACA CENTRAL --- */
+    function createCentralSquare() {
+      // Plataforma circular
+      var plat = new THREE.Mesh(
+        new THREE.CylinderGeometry(16, 16, 0.8, 32),
+        new THREE.MeshStandardMaterial({ color: 0x040418, emissive: 0x000920, emissiveIntensity: 0.4, roughness: 0.7, metalness: 0.3 })
+      );
+      plat.position.set(0, 0.4, 0);
+      plat.receiveShadow = true;
+      scene.add(plat);
+
+      // Anel neon
+      var torus = new THREE.Mesh(
+        new THREE.TorusGeometry(16, 0.35, 8, 64),
+        new THREE.MeshStandardMaterial({ color: 0x002266, emissive: 0x0055ff, emissiveIntensity: 2 })
+      );
+      torus.position.set(0, 0.8, 0);
+      torus.rotation.x = Math.PI / 2;
+      scene.add(torus);
+
+      // Obelisco
+      var obase = new THREE.Mesh(new THREE.BoxGeometry(4.5, 1, 4.5),
+        new THREE.MeshStandardMaterial({ color: 0x001133, emissive: 0x001155, emissiveIntensity: 0.5, metalness: 0.9 }));
+      obase.position.set(0, 1, 0);
+      scene.add(obase);
+
+      var obe = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 1.8, 14, 4),
+        new THREE.MeshStandardMaterial({ color: 0x000a22, emissive: 0x0033aa, emissiveIntensity: 0.7, metalness: 0.95, roughness: 0.05 }));
+      obe.position.set(0, 8.5, 0);
+      scene.add(obe);
+
+      // Cristal octaedrico animado
+      centralCrystal = new THREE.Mesh(new THREE.OctahedronGeometry(1.8),
+        new THREE.MeshStandardMaterial({ color: 0x00aaff, emissive: 0x00f5ff, emissiveIntensity: 2.5, transparent: true, opacity: 0.85, roughness: 0, metalness: 0.6 }));
+      centralCrystal.position.set(0, 16.2, 0);
+      scene.add(centralCrystal);
+
+      crystalLight = new THREE.PointLight(0x00f5ff, 5, 35);
+      crystalLight.position.set(0, 16, 0);
+      scene.add(crystalLight);
+    }
+
+    /* ============================================================
+       MOVIMENTO DO JOGADOR
+       ============================================================ */
+    /* ============================================================
+       ESCADA — recalcula P_HEIGHT a cada frame com base na posição
+       atual do jogador (X/Z), permitindo subir e descer suavemente.
+       [FIX] Antes esse cálculo só rodava uma vez na criação da cena.
+       ============================================================ */
+    function updateStairs() {
+      var px = camera.position.x, pz = camera.position.z;
+
+      if (px >= limiteEscada.xMin && px <= limiteEscada.xMax &&
+          pz >= limiteEscada.zMin && pz <= limiteEscada.zMax) {
+
+        // Calcula a porcentagem (0 a 1) de quão longe o jogador andou na escada
+        var comprimentoTotal = limiteEscada.zMax - limiteEscada.zMin;
+        var posicaoAtualZ = pz - limiteEscada.zMin;
+        var pct = posicaoAtualZ / comprimentoTotal;
+
+        if (pct < 0) pct = 0;
+        if (pct > 1) pct = 1;
+
+        // Interpola a altura linearmente entre o térreo e o subsolo
+        P_HEIGHT = alturaInicial + (alturaFinal - alturaInicial) * pct;
+
+      } else {
+        // Fora da escada, mantém a altura firme do andar onde o jogador está
+        if (P_HEIGHT > (alturaInicial + alturaFinal) / 2) {
+          P_HEIGHT = alturaInicial;
+        } else {
+          P_HEIGHT = alturaFinal;
+        }
+      }
+    }
+
+    function checkCollision() {
+      var px = camera.position.x, pz = camera.position.z;
+      for (var i = 0; i < colliders.length; i++) {
+        var c = colliders[i];
+        var dx = px - c.x, dz = pz - c.z;
+        var r = c.r + 0.5;
+        if (dx * dx + dz * dz < r * r) return true;
+      }
+      return false;
+    }
+
+    function updateMovement(delta) {
+      if (!gameStarted || hologramOpen) return;
+      if (!KEYS.w && !KEYS.s && !KEYS.a && !KEYS.d) return;
+
+      var spd = SPD * delta;
+      var sinY = Math.sin(camYaw), cosY = Math.cos(camYaw);
+      var dx = 0, dz = 0;
+
+      // Vetor de movimento baseado na direcao da camera (yaw)
+      if (KEYS.w) { dx -= sinY; dz -= cosY; }   // Frente
+      if (KEYS.s) { dx += sinY; dz += cosY; }   // Tras
+      if (KEYS.d) { dx += cosY; dz -= sinY; }   // Direita
+      if (KEYS.a) { dx -= cosY; dz += sinY; }   // Esquerda
+
+      // Normaliza para velocidade consistente na diagonal
+      var len = Math.sqrt(dx * dx + dz * dz);
+      if (len > 0) { dx /= len; dz /= len; }
+
+      var prevX = camera.position.x, prevZ = camera.position.z;
+      camera.position.x += dx * spd;
+      camera.position.z += dz * spd;
+      updateStairs();
+      camera.position.y = P_HEIGHT;
+
+      // Limites da cidade
+      camera.position.x = Math.max(-BOUNDS, Math.min(BOUNDS, camera.position.x));
+      camera.position.z = Math.max(-BOUNDS, Math.min(BOUNDS, camera.position.z));
+
+      // Rollback se colidiu com edificio
+      if (checkCollision()) {
+        camera.position.x = prevX;
+        camera.position.z = prevZ;
+      }
+    }
+
+    /* ============================================================
+       ANIMACOES DOS EDIFICIOS
+       ============================================================ */
+    function animateBuildings(t) {
+      buildings.forEach(function (b) {
+        var a = b.anim;
+        if (!a) return;
+
+        // HTML Tower — aneis giram
+        if (a.rings) {
+          a.rings.forEach(function (ring, i) {
+            ring.rotation.z = t * 0.25 * (i % 2 === 0 ? 1 : -1);
+          });
+        }
+        // CSS Lab — paineis pulsam
+        if (a.panels) {
+          a.panels.forEach(function (p, i) {
+            p.material.emissiveIntensity = 0.5 + Math.sin(t * 1.8 + i * 1.2) * 0.4;
+          });
+          if (a.sphere) a.sphere.material.emissiveIntensity = 1.5 + Math.sin(t * 3) * 0.8;
+        }
+        // JS Arena — wireframe gira
+        if (a.domeWire) a.domeWire.rotation.y = t * 0.25;
+        if (a.edge) a.edge.material.emissiveIntensity = 1.5 + Math.sin(t * 3) * 0.8;
+        // Bootstrap — barras pulsam
+        if (a.bars) {
+          a.bars.forEach(function (bar, i) {
+            bar.material.emissiveIntensity = 0.8 + Math.sin(t * 2 + i * 0.5) * 0.5;
+          });
+        }
+        // A11Y — disco e cupula pulsam
+        if (a.disc) a.disc.material.emissiveIntensity = 0.6 + Math.sin(t * 2) * 0.4;
+        if (a.dome) a.dome.material.emissiveIntensity = 0.4 + Math.sin(t * 1.5) * 0.3;
+        // Luz base de todos
+        if (a.basePt) a.basePt.intensity = 2.5 + Math.sin(t * 1.5) * 0.8;
+        // Torres da arena
+        if (a.tLights) {
+          a.tLights.forEach(function (l, i) { l.intensity = 1 + Math.sin(t * 2 + i * 0.8) * 0.5; });
+        }
+        // AI Center
+        if (a.core) {
+          a.core.rotation.y = t * 0.5;
+          a.core.scale.setScalar(1 + Math.sin(t * 3) * 0.1);
+          a.light.intensity = 3 + Math.sin(t * 3) * 2;
+        }
+      });
+
+      // Cristal central
+      if (centralCrystal) {
+        centralCrystal.rotation.y = t * 0.6;
+        centralCrystal.rotation.x = Math.sin(t * 0.4) * 0.15;
+        centralCrystal.position.y = 16.2 + Math.sin(t * 1.2) * 0.4;
+      }
+      if (crystalLight) {
+        crystalLight.intensity = 4 + Math.sin(t * 2.5) * 2;
+      }
+    }
+
+    /* ============================================================
+       INTERACOES (proximidade + tecla E)
+       ============================================================ */
+    function updateInteractions() {
+      if (hologramOpen) return;
+
+      var px = camera.position.x, pz = camera.position.z;
+      var closest = null, bestDist = Infinity;
+
+      buildings.forEach(function (b) {
+        var dx = px - b.x, dz = pz - b.z;
+        var dist = Math.sqrt(dx * dx + dz * dz);
+        if (dist < I_DIST && dist < bestDist) {
+          closest = b;
+          bestDist = dist;
+        }
+      });
+
+      if (closest !== nearBuilding) {
+        nearBuilding = closest;
+        var prompt = document.getElementById('prompt');
+        var bname = document.getElementById('p-bname');
+        if (nearBuilding) {
+          bname.textContent = nearBuilding.name;
+          prompt.classList.remove('hidden');
+        } else {
+          prompt.classList.add('hidden');
+        }
+      }
+    }
+
+    /* ============================================================
+       HUD E MINIMAP
+       ============================================================ */
+    var AREAS = [
+      { name: 'HTML TOWER', x: -40, z: -20, r: 22 },
+      { name: 'CSS LAB', x: 40, z: -20, r: 22 },
+      { name: 'JS ARENA', x: -40, z: 32, r: 22 },
+      { name: 'BOOTSTRAP DISTRICT', x: 42, z: 32, r: 24 },
+      { name: 'ACCESSIBILITY CENTER', x: 0, z: 58, r: 26 },
+      { name: 'PORTAL PROJEÇÃO', x: 0, z: -72, r: 20 },
+      { name: 'AI COMMAND CENTER', x: 0, z: -35, r: 20 },
+      { name: 'FORMS FACTORY', x: -100, z: -20, r: 20 },
+      { name: 'MEDIA MUSEUM', x: 100, z: -20, r: 20 },
+      { name: 'TYPOGRAPHY TEMPLE', x: -100, z: 32, r: 20 },
+      { name: 'ANIMATION ALLEY', x: 100, z: 32, r: 20 },
+      { name: 'DOM DOMAIN', x: -40, z: -80, r: 20 },
+      { name: 'ARRAY ARCADE', x: 40, z: -80, r: 20 },
+      { name: 'STORAGE STATION', x: -40, z: 90, r: 20 },
+      { name: 'CANVAS COLISEUM', x: 40, z: 90, r: 20 },
+      { name: 'UI/UX HUB', x: -80, z: 70, r: 20 },
+      { name: 'MOBILE MARKET', x: 80, z: 70, r: 20 }
+    ];
+
+    var MAP_BLDS = [
+      { lbl: 'HTML', x: -40, z: -20, c: '#0088ff', r: 6 },
+      { lbl: 'CSS', x: 40, z: -20, c: '#cc00ff', r: 6 },
+      { lbl: 'JS', x: -40, z: 32, c: '#ffcc00', r: 6 },
+      { lbl: 'BS', x: 42, z: 32, c: '#8833ff', r: 6 },
+      { lbl: 'A11Y', x: 0, z: 58, c: '#00ff88', r: 6 },
+      { lbl: 'PRJ', x: 0, z: -72, c: '#00ccff', r: 5 },
+      { lbl: 'AI', x: 0, z: -35, c: '#bb00ff', r: 6 },
+      { lbl: 'FRM', x: -100, z: -20, c: '#aaaaaa', r: 5 },
+      { lbl: 'MED', x: 100, z: -20, c: '#aaaaaa', r: 5 },
+      { lbl: 'TYP', x: -100, z: 32, c: '#aaaaaa', r: 5 },
+      { lbl: 'ANI', x: 100, z: 32, c: '#aaaaaa', r: 5 },
+      { lbl: 'DOM', x: -40, z: -80, c: '#aaaaaa', r: 5 },
+      { lbl: 'ARR', x: 40, z: -80, c: '#aaaaaa', r: 5 },
+      { lbl: 'STO', x: -40, z: 90, c: '#aaaaaa', r: 5 },
+      { lbl: 'CNV', x: 40, z: 90, c: '#aaaaaa', r: 5 },
+      { lbl: 'UIX', x: -80, z: 70, c: '#aaaaaa', r: 5 },
+      { lbl: 'MOB', x: 80, z: 70, c: '#aaaaaa', r: 5 },
+      { lbl: '*', x: 0, z: 0, c: '#ff44aa', r: 4 }
+    ];
+
+    function initUI() {
+      mapCtx = document.getElementById('minimap').getContext('2d');
+      mapCtx.imageSmoothingEnabled = false;
+    }
+
+    function updateHUD(t) {
+      var px = camera.position.x, pz = camera.position.z;
+      document.getElementById('cx').textContent = px.toFixed(1);
+      document.getElementById('cz').textContent = pz.toFixed(1);
+
+      // Nome da area
+      var locName = 'PRACA CENTRAL';
+      for (var i = 0; i < AREAS.length; i++) {
+        var a = AREAS[i];
+        var dx = px - a.x, dz = pz - a.z;
+        if (dx * dx + dz * dz < a.r * a.r) { locName = a.name; break; }
+      }
+      document.getElementById('hud-loc').textContent = locName;
+
+      // Minimap
+      drawMinimap(px, pz);
+
+      // FPS
+      fpsCount++;
+      if (t - fpsTimer >= 1) {
+        document.getElementById('fps').textContent = fpsCount;
+        fpsCount = 0;
+        fpsTimer = t;
+      }
+    }
+
+    function drawMinimap(px, pz) {
+      if (!mapCtx) return;
+      var ctx = mapCtx, W = 152, H = 152, cx = W / 2, cy = H / 2, sc = 0.42;
+
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = 'rgba(0,3,15,.92)';
+      ctx.fillRect(0, 0, W, H);
+
+      // Grade
+      ctx.strokeStyle = 'rgba(0,40,100,.2)';
+      ctx.lineWidth = 0.5;
+      for (var i = 0; i < W; i += 16) {
+        ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke();
+      }
+
+      // Edificios
+      MAP_BLDS.forEach(function (b) {
+        var mx = cx + b.x * sc, my = cy + b.z * sc;
+        ctx.beginPath(); ctx.arc(mx, my, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = b.c; ctx.fill();
+        ctx.globalAlpha = 0.25;
+        ctx.beginPath(); ctx.arc(mx, my, b.r + 3, 0, Math.PI * 2);
+        ctx.strokeStyle = b.c; ctx.lineWidth = 2; ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+        ctx.fillText(b.lbl, mx, my - b.r - 3);
+      });
+
+      // Jogador
+      var mpx = cx + px * sc, mpy = cy + pz * sc;
+      ctx.beginPath(); ctx.arc(mpx, mpy, 6.5, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.beginPath(); ctx.arc(mpx, mpy, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff'; ctx.fill();
+
+      ctx.strokeStyle = 'rgba(0,100,200,.4)'; ctx.lineWidth = 1;
+      ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+    }
+
+    /* ============================================================
+       HOLOGRAM — abre/fecha painel pedagogico
+       [DEV NOTE] Esta função injeta as seções dinamicamente via DOM.
+       Modifique `BUILDING_DATA` para alterar o conteúdo gerado aqui.
+       ============================================================ */
+    function openHologram(content) {
+      hologramOpen = true;
+      document.getElementById('prompt').classList.add('hidden');
+
+      if (typeof checkMissions !== 'undefined') checkMissions(content.title);
+
+      // Aplica cor tematica via CSS custom property
+      var panel = document.getElementById('hologram');
+      panel.style.setProperty('--hcol', content.color || '#00f5ff');
+
+      document.getElementById('h-ico').innerHTML = content.icon || '&#11041;';
+      document.getElementById('h-title').textContent = content.title || '';
+      document.getElementById('h-sub').innerHTML = content.sub || '';
+      document.getElementById('h-prog').textContent = (content.sections.length) + ' TÓPICOS';
+
+      // Gera secoes de conteudo
+      var html = '';
+      content.sections.forEach(function (s, i) {
+        html += '<div class="h-sec" style="animation-delay:' + (i * 0.08) + 's">' +
+          '<div class="h-sh">' +
+          '<code class="h-tag">' + s.tag + '</code>' +
+          '<span class="h-lbl">' + s.lbl + '</span>' +
+          '</div>' +
+          '<p class="h-desc">' + s.desc + '</p>' +
+          (s.ex ? '<div class="h-code"><div class="h-chd"><span>exemplo</span><span class="lang">code</span></div><pre><code>' + s.ex + '</code></pre></div>' : '') +
+          '</div>';
+      });
+      document.getElementById('h-content').innerHTML = html;
+
+      panel.classList.remove('hidden');
+
+      // Libera o ponteiro para interagir com o painel
+      if (document.exitPointerLock) document.exitPointerLock();
+
+      setTimeout(function () {
+        document.getElementById('h-content').querySelector('.h-x') || document.getElementById('h-content').focus();
+      }, 100);
+    }
+
+    function closeHologram() {
+      if (!hologramOpen) return;
+      hologramOpen = false;
+
+      var panel = document.getElementById('hologram');
+      panel.style.animation = 'hClose .3s ease forwards';
+      setTimeout(function () {
+        panel.classList.add('hidden');
+        panel.style.animation = '';
+      }, 300);
+
+      if (nearBuilding) {
+        document.getElementById('p-bname').textContent = nearBuilding.name;
+        document.getElementById('prompt').classList.remove('hidden');
+      }
+    }
+
+    /* ============================================================
+       PARTICULAS — anima a "chuva de dados"
+       ============================================================ */
+    function animateParticles() {
+      if (!ptMesh) return;
+      for (var i = 0; i < ptVelocities.length; i++) {
+        ptPositions[i * 3 + 1] -= ptVelocities[i];
+        if (ptPositions[i * 3 + 1] < 0) ptPositions[i * 3 + 1] = 80;
+      }
+      ptMesh.geometry.attributes.position.needsUpdate = true;
+    }
+
+    /* ============================================================
+       GAME LOOP
+       [DEV NOTE] Chamado a ~60FPS pelo browser (requestAnimationFrame).
+       Ordem de execução é vital: Movimento -> Colisões -> Animações Internas -> Animações Externas -> HUD -> WebGL Render.
+       ============================================================ */
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Renderiza a cena de fundo mesmo antes de comecar
+      if (!gameStarted) {
+        renderer.render(scene, camera);
+        return;
+      }
+
+      var delta = Math.min(clock.getDelta(), 0.1);
+      var time = clock.getElapsedTime();
+
+      updateMovement(delta);
+      updateInteractions();
+      animateBuildings(time);
+      animateParticles();
+      updateHUD(time);
+
+      if (typeof updateCitizens !== 'undefined') updateCitizens(delta, time, BOUNDS);
+  if (typeof updateDrones !== 'undefined') updateDrones(delta, time);
+  if (typeof updateHovercars !== 'undefined') updateHovercars(delta, time, BOUNDS);
+      if (typeof updatePanels !== 'undefined') updatePanels(time);
+
+      renderer.render(scene, camera);
+    }
+
+    /* ============================================================
+       FUNCOES GLOBAIS (chamadas pelos botoes HTML)
+       ============================================================ */
+    function startGame() {
+      document.getElementById('start-screen').classList.add('hidden');
+      document.getElementById('hud').classList.remove('hidden');
+      gameStarted = true;
+      document.getElementById('game-canvas').requestPointerLock();
+    }
+
+    function resumeGame() {
+      document.getElementById('pause-scr').classList.add('hidden');
+      document.getElementById('game-canvas').requestPointerLock();
+    }
+
+    /* ============================================================
+       INICIALIZAR TUDO
+       ============================================================ */
+    function init() {
+      initRenderer();
+      initScene();
+      initCamera();
+      initInput();
+      initBuildings();
+      initUI();
+
+      if (typeof initCitizens !== 'undefined') initCitizens(scene);
+      if (typeof initDrones !== 'undefined') initDrones(scene);
+      if (typeof initMissions !== 'undefined') initMissions();
+
+      animate();
+    }
+
+    // Inicia quando o DOM estiver pronto
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+
+</html>
